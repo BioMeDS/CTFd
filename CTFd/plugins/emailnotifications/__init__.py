@@ -18,7 +18,7 @@ from CTFd.utils.email import sendmail
 
 from CTFd.cache import cache
 from CTFd.models import Brackets, UserFieldEntries, UserFields, UserTokens, Users, db
-from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, append_to_route, toggle_config
+from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route, toggle_config
 from CTFd.utils.validators import ValidationError
 from CTFd.utils import user as current_user
 from CTFd.plugins.emailnotifications.forms import forms
@@ -35,10 +35,6 @@ class UserNotifs(db.Model):
         self.user = user.id
         self.email = user.email
         self.data = data
-
-notifications_namespace = Namespace(
-    "notifications", description="Endpoint to retrieve Notifications"
-)
 
 cache.memoize()
 def _get_all_users_checked():
@@ -98,6 +94,7 @@ def load(app):
     app.jinja_env.globals.update(EmailNotifAssets=_LuaAsset("emailnotifications"))
     app.jinja_env.globals.update(NotificationForms=forms)
     app.jinja_env.globals.update(Notifications = get_user_check)
+    app.register_blueprint(emailNotifs,url_prefix='/emailnotifications')
     
     keys = ['sendEmailNotif','allowUserCheckmarkNotif','emailPrivacyNotif']
     for k in keys:
@@ -108,7 +105,7 @@ def load(app):
     users = db.session.query(Users).all()
     checks = []
     for u in users:
-        checks.append(UserNotifs(u,False))
+        checks.append(UserNotifs(u,True))
     for c in checks:
         try:
             db.session.add(c)
@@ -319,7 +316,7 @@ def load(app):
 
     app.view_functions['auth.register'] = register
 
-    app.register_blueprint(emailNotifs,url_prefix='/emailnotifications')
+    
     
     @app.route("/admin/emailNotifs/config/<configType>",methods=['GET','POST'])
     @admins_only
@@ -474,9 +471,7 @@ def load(app):
             db.session.query(UserNotifs).filter(UserNotifs.user == user.id).update({'data':checked})
             db.session.commit()
 
-    append_to_route(app,'api.users_user_private',set_notif_check)
-
-
+    run_before_route(app,'api.users_user_private',set_notif_check)
     
     @admins_only
     def patch_user(user_id):
@@ -486,13 +481,13 @@ def load(app):
             UserNotifs.query.filter_by(user=user_id).update({'data':checked})
             db.session.commit()
 
-    append_to_route(app,'api.users_user_public',patch_user)
+    run_before_route(app,'api.users_user_public',patch_user)
     
     @admins_only
     def delete_user(user_id):
         if request.method == "DELETE":
             UserNotifs.query.filter_by(user=user_id).delete()
     
-    append_to_route(app,'api.users_user_public',delete_user)
+    run_before_route(app,'api.users_user_public',delete_user)
 
     registerTemplate("admin/users/user.html",'AdminUser.html')
