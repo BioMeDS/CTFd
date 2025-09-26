@@ -12,7 +12,6 @@ from CTFd.utils.decorators import admins_only, authed_only, ratelimit
 from CTFd.utils.security.auth import login_user
 from CTFd.utils.user import get_current_team, get_current_user
 from flask import render_template,request,current_app,Blueprint,url_for,redirect,abort
-from flask_restx import Namespace
 
 from CTFd.utils.email import sendmail
 

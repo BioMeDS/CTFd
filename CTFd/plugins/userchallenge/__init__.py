@@ -1,18 +1,17 @@
 from CTFd.plugins.userchallenge.api_calls import challenges, comments, attempts, files, flags, hints, tags, topics
 from flask import render_template,request,Blueprint, url_for, abort
-from sqlalchemy.sql import and_
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.models import Challenges, Solves, Flags, db, Configs,Flags
 from CTFd.utils.decorators import admins_only
 from CTFd.plugins.userchallenge.utils import *
-from CTFd.plugins.LuaUtils import _LuaAsset, run_before_route,toggle_config
+from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route,toggle_config
 userChallenge = Blueprint('userchallenge',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):
-
-    
     app.db.create_all()
     app.jinja_env.globals.update(UserChallengeAsset=_LuaAsset("userchallenge"))
+    app.jinja_env.globals.update(UserChallengeReadOnly = isReadOnly)
+    app.jinja_env.globals.update(UserChallengeShowLink = showLink)
 
     app.register_blueprint(userChallenge,url_prefix='/userchallenge')
 
@@ -28,18 +27,29 @@ def load(app):
     # config page admins
     @app.route('/admin/userChallenge')
     @admins_only
-    def view_config():        
-        key = Configs.query.filter(Configs.key == "allowUserChallenges").first().value
-        db.session.commit()
-        if key:
-            if key == "true":
-                enabled = "enabled"
-            else :
-                enabled = "disabled"
-        else:
-            enabled = "non-existant"
-                
-        return render_template('userConfig.html',status = enabled)
+    def user_config():
+        allow = get_config('allowUserChallenges')
+        readonly = get_config('isReadOnlyUserChallenges')
+
+        if allow:
+            allow = "enabled"
+        else :
+            allow = "disabled"
+        
+        if readonly:
+            readonly = "enabled"
+        else :
+            readonly = "disabled"
+
+        configs = []
+        configs.append(ConfigPanel("User-Challenges",
+                                   "Enableing User-Challenges gives all users access to create and edit their own challenges.",
+                                   allow,'allowUserChallenges'))
+        configs.append(ConfigPanel("Read Only",
+                                   "If enabled, every User who created challenges can still view them but not edit them.",
+                                   readonly,'isReadOnlyUserChallenges'))
+        
+        return render_template('notificationConfig.html',configs = configs)
 
     # add creation date and user to listing
     @admins_only
@@ -82,14 +92,16 @@ def load(app):
     run_before_route(app,'api.users_user_public',delete_user)
 
     #config page api call
-    @app.route('/userchallenge/api/config',methods=['GET','POST'])
+    @app.route('/userchallenge/api/config/<configType>',methods=['GET','POST'])
     @admins_only
-    def getConfig():
-        newstate = toggle_config('allowUserChallenges')
+    def toggle_configs(configType):
+        key = configType
+        newstate = toggle_config(key)
         data = "disabled"
         if newstate:
             data = "enabled"
-        return {"success":True,"data":data}
+        
+        return {"success":True,"data":data,"id":key}
 
     #user view challenge list
     @app.route('/userchallenge/challenges',methods=['GET','POST'])

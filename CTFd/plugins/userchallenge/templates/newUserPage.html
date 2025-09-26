@@ -7,7 +7,7 @@
 
 
 	  {% if is_admin() != true %}
-      {% if get_config('allowUserChallenges')%}
+      {% if UserChallengeShowLink()%}
         <a href="/userchallenge/challenges">
           My Challenges
         </a>

@@ -1,11 +1,15 @@
 import $ from "jquery";
-$("#toggle-button").click(()=>{
-    $.get("/userchallenge/api/config",function (res){
-        $("#label-enable").html(res.data)
+
+$(".toggle-button").click(function() {
+    this.id = this.value
+    function foo (res) {
+        $("#"+res.id).html(res.data)
         if(res.data === "enabled"){
-            $("#toggle-button").removeClass("bg-danger").addClass("bg-success")
+            $("#"+res.id).removeClass("bg-danger").addClass("bg-success")
         }else{
-            $("#toggle-button").removeClass("bg-success").addClass("bg-danger")
-        }
-    })
-})
+            $("#"+res.id).removeClass("bg-success").addClass("bg-danger")
+        }}
+        $.get(`/userchallenge/api/config/${this.value}`,function(res){
+            foo(res)
+        })
+  });

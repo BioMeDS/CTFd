@@ -11,11 +11,13 @@
 	
 	<div class="container">
 		<h1>Challenges
+			{% if not UserChallengeReadOnly() %}
 			<a class="no-decoration" href="{{url_for('view_newChallenge')}}">
 				<span role="button" data-toggle="tooltip" title="Create Challenge">
 					<i class="btn-fa fas fa-plus-circle"></i>
 				</span>
 			</a>
+			{% endif %}
 		</h1>
 	</div>
 </div>
