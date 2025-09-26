@@ -83,7 +83,7 @@ def registerTemplate(old_path, new_path):
 
 def get_user_check(user_id):
         query = db.session.query(UserNotifs).filter(UserNotifs.user == user_id).first()
-        return 'send' if query.data else 'don\'t send'
+        return 'true' if query.data else 'false'
 
 emailNotifs = Blueprint('emailnotifications',__name__,template_folder='templates',static_folder ='staticAssets')
 
@@ -93,7 +93,7 @@ def load(app):
     #intitalize jinja globals
     app.jinja_env.globals.update(EmailNotifAssets=_LuaAsset("emailnotifications"))
     app.jinja_env.globals.update(NotificationForms=forms)
-    app.jinja_env.globals.update(Notifications = get_user_check)
+    app.jinja_env.globals.update(NotificationsGetCheck = get_user_check)
     app.register_blueprint(emailNotifs,url_prefix='/emailnotifications')
     
     keys = ['sendEmailNotif','allowUserCheckmarkNotif','emailPrivacyNotif']
@@ -315,7 +315,6 @@ def load(app):
             return render_template("register.html", errors=errors)
 
     app.view_functions['auth.register'] = register
-
     
     
     @app.route("/admin/emailNotifs/config/<configType>",methods=['GET','POST'])

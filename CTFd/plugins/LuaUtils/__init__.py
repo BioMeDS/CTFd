@@ -70,7 +70,7 @@ def toggle_config(key):
         set_config(key,'true')
         return True
 
-def run_as_decorator(function,last):
+def run_as_decorator(function,*last):
     """returns decorator running function before decorated function"""
     def decorator(f):
         """
@@ -97,5 +97,5 @@ def run_before_route(app,key,function):
 
 def run_after_route(app,key,function):
     """ runs provided function after given app.view_functions function (key) with response as first input"""
-    delete_user_decorator = run_as_decorator(function)
+    delete_user_decorator = run_as_decorator(function,True)
     app.view_functions[key] = delete_user_decorator(app.view_functions[key])

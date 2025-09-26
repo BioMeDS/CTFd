@@ -1,5 +1,5 @@
 {% if get_config('sendEmailNotif') and get_config('allowUserCheckmarkNotif') %}
-{% with form = NotificationForms.users.UserEditForm(obj=user,notifications=Notifications(user.id)) %}
+{% with form = NotificationForms.users.UserEditForm(obj=user,notifications=NotificationsGetCheck(user.id)) %}
 {% from "admin/macros/forms.html" import render_extra_fields %}
 <form id="user-info-edit-form">
 	<div class="form-group">
@@ -32,7 +32,7 @@
 	</div>
 	<div class="form-group">
 		{{ form.notifications.label }}
-		{{ form.notifications(class="form-control custom-select", autocomplete="off", value=Notifications(user.id)) }}
+		{{ form.notifications(class="form-control custom-select", autocomplete="off") }}
 	</div>
 
 	{{ render_extra_fields(form.extra) }}

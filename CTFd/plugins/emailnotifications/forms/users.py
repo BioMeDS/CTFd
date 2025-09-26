@@ -6,7 +6,7 @@ from flask_babel import lazy_gettext as _l
 
 def UserEditForm(*args, **kwargs):
     class _UserEditForm(UserBaseForm):
-        notifications = SelectField(_l("Email Notifications"),choices=[("true","send"),("false","don't send")])
+        notifications = SelectField("Email Notifications",choices=[("true","send"),("false","don't send")])
 
         @property
         def extra(self):
