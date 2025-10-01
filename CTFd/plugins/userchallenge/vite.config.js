@@ -56,7 +56,8 @@ export default defineConfig({
       },
       input: {
         "js/main": resolve(__dirname, "assets/js/main.js"),
-        "js/userChallenge": resolve(__dirname, "assets/js/userChallenge.js"),              
+        "js/userChallenge": resolve(__dirname, "assets/js/userChallenge.js"),      
+        "js/userChallengeRead": resolve(__dirname, "assets/js/userChallengeRead.js"),              
         "js/config" : resolve(__dirname,"assets/js/config.js"),
         "js/adminChallenges" : resolve(__dirname,"assets/js/adminChallenges.js"),
         "js/adminChallenge" : resolve(__dirname,"assets/js/adminChallenge.js")

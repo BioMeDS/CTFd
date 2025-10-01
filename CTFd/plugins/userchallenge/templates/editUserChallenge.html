@@ -48,6 +48,9 @@
 
 	<div class="jumbotron">
 		<div class="container">
+			{%if UserChallengeReadOnly()%}
+			<h3 class="text-center text-info"> Read Only</h3> </h3>
+			{%endif%}
 			<h1 class="text-center">{{ challenge.name }}</h1>
 			<h2 class="text-center">{{ challenge.category }}</h2>
 			<h2 class="text-center">{{ challenge.type }}</h2>
@@ -72,7 +75,12 @@
 	</div>
 
 	<div class="container">
+		{%if UserChallengeReadOnly()%}
+		<div >
+		{%else%}
 		<div class="row">
+		{%endif%}
+			{%if not UserChallengeReadOnly()%}
 			<div class="col-md-6">
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link small active" data-toggle="tab" href="#files" role="tab">Files</a>
@@ -144,11 +152,16 @@
 				</div>
 
 			</div>
-			<div id="challenge-update-container" class="col-md-6">
-				{% if not UserChallengeReadOnly() %}
+			{%endif%}
+			{%if UserChallengeReadOnly()%}
+				<div id="challenge-update-container" class="align-content-center">
 				{{ update_template | safe }}
-				{% endif %}
 			</div>
+			{%else%}
+			<div id="challenge-update-container" class="col-md-6">
+				{{ update_template | safe }}
+			</div>
+			{%endif%}
 		</div>
 	</div>
 
@@ -163,5 +176,9 @@
 
 
 {% block entrypoint %}
-	{{ UserChallengeAsset.js("assets/js/userChallenge.js") }}
+	{%if UserChallengeReadOnly()%}
+		{{ UserChallengeAsset.js("assets/js/userChallengeRead.js") }}
+	{%else%}
+		{{ UserChallengeAsset.js("assets/js/userChallenge.js") }}
+	{%endif%}
 {% endblock %}

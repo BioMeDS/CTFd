@@ -1,4 +1,5 @@
 from CTFd.plugins.userchallenge.api_calls import challenges, comments, attempts, files, flags, hints, tags, topics
+from CTFd.utils.logging import log
 from flask import render_template,request,Blueprint, url_for, abort
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.models import Challenges, Solves, Flags, db, Configs,Flags
@@ -155,12 +156,17 @@ def load(app):
             )
 
         update_j2 = render_template(
-            challenge_class.templates["update"].lstrip("/admin/challenges/"), challenge=challenge
+            challenge_class.templates["update"].lstrip("admin/challenges/"), challenge=challenge
         )
+
+        if isReadOnly():
+            if type(update_j2) == str:
+                update_j2 = update_j2.replace("	<div>\n\t\t<button class=\"btn btn-success btn-outlined float-right\" type=\"submit\">\n\t\t\tUpdate\n\t\t</button>\n\t</div>","")
 
         update_script = url_for(
             "views.static_html", route=challenge_class.scripts["update"].lstrip("/admin/challenges/")
         )
+
         return render_template(
             "editUserChallenge.html",
             update_template=update_j2,

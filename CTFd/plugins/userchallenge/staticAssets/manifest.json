@@ -1,17 +1,32 @@
 {
-  "_NextChallenge-!~{008}~.js": {
-    "file": "assets/NextChallenge-TjNF-g_K.css",
-    "src": "_NextChallenge-!~{008}~.js"
+  "_CommentBox-!~{009}~.js": {
+    "file": "assets/CommentBox-D18HLkQY.css",
+    "src": "_CommentBox-!~{009}~.js"
   },
-  "_NextChallenge-Dv28FTpn.js": {
-    "file": "assets/NextChallenge-Dv28FTpn.js",
+  "_CommentBox-Wn3-3COC.js": {
+    "file": "assets/CommentBox-Wn3-3COC.js",
+    "name": "CommentBox",
+    "imports": [
+      "_jquery-BT3bhPE2.js",
+      "assets/js/main.js"
+    ],
+    "css": [
+      "assets/CommentBox-D18HLkQY.css"
+    ]
+  },
+  "_NextChallenge-!~{00a}~.js": {
+    "file": "assets/NextChallenge-CgL1HbyM.css",
+    "src": "_NextChallenge-!~{00a}~.js"
+  },
+  "_NextChallenge-CjBb2kIY.js": {
+    "file": "assets/NextChallenge-CjBb2kIY.js",
     "name": "NextChallenge",
     "imports": [
       "_jquery-BT3bhPE2.js",
       "assets/js/main.js"
     ],
     "css": [
-      "assets/NextChallenge-TjNF-g_K.css"
+      "assets/NextChallenge-CgL1HbyM.css"
     ]
   },
   "_echarts-l0sNRNKZ.js": {
@@ -23,18 +38,19 @@
     "name": "jquery"
   },
   "assets/js/adminChallenge.js": {
-    "file": "assets/js/adminChallenge-V6jHZKj3.js",
+    "file": "assets/js/adminChallenge-HdmuZd88.js",
     "name": "js/adminChallenge",
     "src": "assets/js/adminChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
       "_jquery-BT3bhPE2.js",
-      "_NextChallenge-Dv28FTpn.js"
+      "_CommentBox-Wn3-3COC.js",
+      "_NextChallenge-CjBb2kIY.js"
     ]
   },
   "assets/js/adminChallenges.js": {
-    "file": "assets/js/adminChallenges-CFwNMCAu.js",
+    "file": "assets/js/adminChallenges-BwwEJcBs.js",
     "name": "js/adminChallenges",
     "src": "assets/js/adminChallenges.js",
     "isEntry": true,
@@ -44,7 +60,7 @@
     ]
   },
   "assets/js/config.js": {
-    "file": "assets/js/config-BmVYr8Fc.js",
+    "file": "assets/js/config-DiyzPk6N.js",
     "name": "js/config",
     "src": "assets/js/config.js",
     "isEntry": true,
@@ -53,7 +69,7 @@
     ]
   },
   "assets/js/main.js": {
-    "file": "assets/js/main-D4L0FPhU.js",
+    "file": "assets/js/main-CAeI73oC.js",
     "name": "js/main",
     "src": "assets/js/main.js",
     "isEntry": true,
@@ -62,14 +78,26 @@
     ]
   },
   "assets/js/userChallenge.js": {
-    "file": "assets/js/userChallenge-BH1QRXSP.js",
+    "file": "assets/js/userChallenge-B2rKbD2y.js",
     "name": "js/userChallenge",
     "src": "assets/js/userChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
       "_jquery-BT3bhPE2.js",
-      "_NextChallenge-Dv28FTpn.js"
+      "_CommentBox-Wn3-3COC.js",
+      "_NextChallenge-CjBb2kIY.js"
+    ]
+  },
+  "assets/js/userChallengeRead.js": {
+    "file": "assets/js/userChallengeRead-m7wWVjvD.js",
+    "name": "js/userChallengeRead",
+    "src": "assets/js/userChallengeRead.js",
+    "isEntry": true,
+    "imports": [
+      "assets/js/main.js",
+      "_jquery-BT3bhPE2.js",
+      "_CommentBox-Wn3-3COC.js"
     ]
   }
 }
