@@ -1,29 +1,30 @@
 {
-  "_CommentBox-!~{009}~.js": {
-    "file": "assets/CommentBox-D18HLkQY.css",
-    "src": "_CommentBox-!~{009}~.js"
+  "_HintEditForm-!~{009}~.js": {
+    "file": "assets/HintEditForm-D18HLkQY.css",
+    "src": "_HintEditForm-!~{009}~.js"
   },
-  "_CommentBox-Wn3-3COC.js": {
-    "file": "assets/CommentBox-Wn3-3COC.js",
-    "name": "CommentBox",
+  "_HintEditForm-DNEO1qNm.js": {
+    "file": "assets/HintEditForm-DNEO1qNm.js",
+    "name": "HintEditForm",
     "imports": [
       "_jquery-BT3bhPE2.js",
       "assets/js/main.js"
     ],
     "css": [
-      "assets/CommentBox-D18HLkQY.css"
+      "assets/HintEditForm-D18HLkQY.css"
     ]
   },
   "_NextChallenge-!~{00a}~.js": {
     "file": "assets/NextChallenge-CgL1HbyM.css",
     "src": "_NextChallenge-!~{00a}~.js"
   },
-  "_NextChallenge-CjBb2kIY.js": {
-    "file": "assets/NextChallenge-CjBb2kIY.js",
+  "_NextChallenge-B045kg1p.js": {
+    "file": "assets/NextChallenge-B045kg1p.js",
     "name": "NextChallenge",
     "imports": [
       "_jquery-BT3bhPE2.js",
-      "assets/js/main.js"
+      "assets/js/main.js",
+      "_HintEditForm-DNEO1qNm.js"
     ],
     "css": [
       "assets/NextChallenge-CgL1HbyM.css"
@@ -38,19 +39,19 @@
     "name": "jquery"
   },
   "assets/js/adminChallenge.js": {
-    "file": "assets/js/adminChallenge-HdmuZd88.js",
+    "file": "assets/js/adminChallenge-BPYpz-CD.js",
     "name": "js/adminChallenge",
     "src": "assets/js/adminChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
       "_jquery-BT3bhPE2.js",
-      "_CommentBox-Wn3-3COC.js",
-      "_NextChallenge-CjBb2kIY.js"
+      "_HintEditForm-DNEO1qNm.js",
+      "_NextChallenge-B045kg1p.js"
     ]
   },
   "assets/js/adminChallenges.js": {
-    "file": "assets/js/adminChallenges-BwwEJcBs.js",
+    "file": "assets/js/adminChallenges-dlmDTQdz.js",
     "name": "js/adminChallenges",
     "src": "assets/js/adminChallenges.js",
     "isEntry": true,
@@ -69,7 +70,7 @@
     ]
   },
   "assets/js/main.js": {
-    "file": "assets/js/main-CAeI73oC.js",
+    "file": "assets/js/main-BOoqZ4em.js",
     "name": "js/main",
     "src": "assets/js/main.js",
     "isEntry": true,
@@ -78,26 +79,29 @@
     ]
   },
   "assets/js/userChallenge.js": {
-    "file": "assets/js/userChallenge-B2rKbD2y.js",
+    "file": "assets/js/userChallenge-CYzcI62h.js",
     "name": "js/userChallenge",
     "src": "assets/js/userChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
       "_jquery-BT3bhPE2.js",
-      "_CommentBox-Wn3-3COC.js",
-      "_NextChallenge-CjBb2kIY.js"
+      "_HintEditForm-DNEO1qNm.js",
+      "_NextChallenge-B045kg1p.js"
     ]
   },
   "assets/js/userChallengeRead.js": {
-    "file": "assets/js/userChallengeRead-m7wWVjvD.js",
+    "file": "assets/js/userChallengeRead-T3PixX6D.js",
     "name": "js/userChallengeRead",
     "src": "assets/js/userChallengeRead.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_jquery-BT3bhPE2.js",
-      "_CommentBox-Wn3-3COC.js"
+      "_HintEditForm-DNEO1qNm.js",
+      "_jquery-BT3bhPE2.js"
+    ],
+    "css": [
+      "assets/userChallengeRead-C9EKdmru.css"
     ]
   }
 }

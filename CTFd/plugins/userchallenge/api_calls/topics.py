@@ -1,7 +1,7 @@
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.models import ChallengeTopics as ChallengeTopicsModel, Topics
 from CTFd.models import ChallengeTopics,db
-from CTFd.plugins.userchallenge.utils import userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.topics import ChallengeTopicSchema, TopicSchema
 from flask import request
 
@@ -25,6 +25,7 @@ def load(app):
     
     @app.route('/userchallenge/api/topics',methods=['POST'])
     @userChallenge_allowed
+    @ReadOnly
     def createTopic():
         req = request.get_json()
         value = req.get("value")
@@ -66,6 +67,8 @@ def load(app):
         {"type": (str, None), "target_id": (int, 0)},
         location="query",
     )
+    @userChallenge_allowed
+    @ReadOnly
     def deleteTop(query_args):
         topic_type = query_args.get("type")
         target_id = int(query_args.get("target_id", 0))
@@ -92,6 +95,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/topic/<topic_id>',methods=['DELETE'])
     @userChallenge_allowed
+    @ReadOnly
     def deleteTopic(topic_id):
         topic = Topics.query.filter_by(id=topic_id).first_or_404()
         db.session.delete(topic)

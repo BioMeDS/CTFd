@@ -3,7 +3,7 @@
 from CTFd.models import Flags,db
 from CTFd.plugins.challenges import CHALLENGE_CLASSES
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
-from CTFd.plugins.userchallenge.utils import userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.flags import FlagSchema
 from flask import render_template,request
 
@@ -40,6 +40,7 @@ def load(app):
     ## flag posting
     @app.route('/userchallenge/api/flags',methods=['POST'])
     @userChallenge_allowed
+    @ReadOnly
     def flagpost():
         req = request.get_json()
         schema = FlagSchema()
@@ -80,6 +81,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/flags/<flag_id>',methods=['PATCH'])
     @userChallenge_allowed
+    @ReadOnly
     def flagIDpatch(flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
         schema = FlagSchema()
@@ -98,6 +100,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/flags/<flag_id>',methods=['DELETE'])
     @userChallenge_allowed
+    @ReadOnly
     def flagIDdelete(flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
 

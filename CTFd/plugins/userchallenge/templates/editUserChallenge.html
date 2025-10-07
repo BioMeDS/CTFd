@@ -75,12 +75,7 @@
 	</div>
 
 	<div class="container">
-		{%if UserChallengeReadOnly()%}
-		<div >
-		{%else%}
 		<div class="row">
-		{%endif%}
-			{%if not UserChallengeReadOnly()%}
 			<div class="col-md-6">
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link small active" data-toggle="tab" href="#files" role="tab">Files</a>
@@ -152,9 +147,8 @@
 				</div>
 
 			</div>
-			{%endif%}
 			{%if UserChallengeReadOnly()%}
-				<div id="challenge-update-container" class="align-content-center">
+			<div id="challenge-update-container" class="col-md-6">
 				{{ update_template | safe }}
 			</div>
 			{%else%}

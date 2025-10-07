@@ -146,3 +146,20 @@ def showLink():
             return True
     else:
         return False
+
+def ReadOnly(f):
+    """
+    Decorator that requires the accessed challenge to be registered under the user's name
+    :param f:
+    :return:
+    """
+    @functools.wraps(f)
+    def is_owned_wrapper(*args, **kwargs):
+        if not isReadOnly() or is_admin():
+            return f(*args, **kwargs)
+        else:
+            return{
+                    "success": True,
+                    "errors": "Read Only Upload Forbidden",
+                }, 200
+    return is_owned_wrapper

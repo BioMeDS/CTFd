@@ -13,12 +13,13 @@ from CTFd.utils.challenges import get_solve_counts_for_challenges, get_solve_ids
 from CTFd.utils.config.visibility import accounts_visible, challenges_visible, scores_visible
 from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
 from flask import render_template,request,url_for, abort
-from CTFd.plugins.userchallenge.utils import UserChallenges, add_User_Link, getAllUserChallenges, setLastChanged, userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import ReadOnly, UserChallenges, add_User_Link, getAllUserChallenges, setLastChanged, userChallenge_allowed
 
 
 def load(app):
     @app.route('/userchallenge/api/challenges/',methods=['POST'])
     @userChallenge_allowed
+    @ReadOnly
     def challengepost():
         data = request.form or request.get_json()
 
@@ -128,6 +129,7 @@ def load(app):
     ## singular challenge
     @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['PATCH'])
     @userChallenge_allowed
+    @ReadOnly
     def idchallpatch(challenge_id):
         data = request.get_json()
 
@@ -307,6 +309,7 @@ def load(app):
         return {"success": True, "data": response}
     @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['DELETE'])
     @admins_only
+    @ReadOnly
     def delete(challenge_id):
         #delete UserChallenge reference
         query = UserChallenges.query.filter_by(challenge=challenge_id)

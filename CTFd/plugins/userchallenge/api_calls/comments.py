@@ -1,6 +1,7 @@
 
 
 
+from CTFd.utils.decorators import admins_only
 from flask import request
 from CTFd.api.v1.comments import get_comment_model
 from CTFd.api.v1.helpers.request import validate_args
@@ -89,7 +90,7 @@ def load(app):
 
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/comments/<comment_id>',methods=['DELETE'])
-    @userChallenge_allowed
+    @admins_only
     def deleteCom(comment_id):
         comment = Comments.query.filter_by(id=comment_id).first_or_404()
         if comment.author_id == get_current_user().id or is_admin():

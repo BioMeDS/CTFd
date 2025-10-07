@@ -2,7 +2,7 @@
 
 from flask import request
 from CTFd.models import HintUnlocks, Hints
-from CTFd.plugins.userchallenge.utils import userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.hints import HintSchema
 from CTFd.models import db
 from CTFd.utils.user import get_current_user, is_admin
@@ -21,6 +21,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/hints',methods=['POST'])
     @userChallenge_allowed
+    @ReadOnly
     def createHint():
         req = request.get_json()
         schema = HintSchema(view="admin")
@@ -106,6 +107,7 @@ def load(app):
 
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/hints/<hint_id>',methods=['PATCH'])
+    @ReadOnly
     @userChallenge_allowed
     def patchHint(hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
@@ -125,6 +127,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/hints/<hint_id>',methods=['DELETE'])
     @userChallenge_allowed
+    @ReadOnly
     def deleteHint(hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
         db.session.delete(hint)

@@ -2,7 +2,7 @@
 
 from flask import request
 from CTFd.models import Tags,db
-from CTFd.plugins.userchallenge.utils import userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.tags import TagSchema
 
 
@@ -22,6 +22,7 @@ def load(app):
 
     @app.route('/userchallenge/api/tags',methods=['POST'])
     @userChallenge_allowed
+    @ReadOnly
     def createTag():
         req = request.get_json()
         schema = TagSchema()
@@ -49,6 +50,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/tags/<tag_id>',methods=['PATCH'])
     @userChallenge_allowed
+    @ReadOnly
     def patchTag(tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         schema = TagSchema()
@@ -66,6 +68,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/tags/<tag_id>',methods=['DELETE'])
     @userChallenge_allowed
+    @ReadOnly
     def deleteTag(tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         db.session.delete(tag)
