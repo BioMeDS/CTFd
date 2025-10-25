@@ -1,8 +1,7 @@
 import os
 from pathlib import Path
-from CTFd.cache import cache
 from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, toggle_config
-from CTFd.utils import _get_asset_json, get_config, set_config
+from CTFd.utils import get_config, set_config
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.logging import log
 from CTFd.utils.plugins import override_template
@@ -18,7 +17,6 @@ def registerTemplate(old_path, new_path):
         override_template(old_path,open(template_path).read())
 
 def load(app):
-    set_config("inlineTranslationStandard","en")
 
     app.jinja_env.globals.update(InlineTranslationAssets=_LuaAsset("inlinetranslation"))
 
@@ -54,9 +52,4 @@ def load(app):
     @app.route("/admin/inlineTranslation/standardlanguage",methods=['GET','POST'])
     def get_standard_language():
         standard = get_config("inlineTranslationStandard")
-        log(
-                            "registrations",
-                            format="#############################################{name}",
-                            name=standard,
-                        )
         return {"success":True,"data":standard}
