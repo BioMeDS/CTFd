@@ -1,26 +1,29 @@
 
 
+// just a data structure holding id "lang"
 export class langPanel extends HTMLElement{
 
-    static observedAttributes = ["lang"];
+  static observedAttributes = ["lang"];
 
-    constructor(){
-        super();
-    }
-    connectedCallback() {
-    console.log("Custom element added to page.");
+  constructor(){
+      super();
+  }
+
+  connectedCallback() {
+
+    
   }
 
   disconnectedCallback() {
-    console.log("Custom element removed from page.");
+
   }
 
   connectedMoveCallback() {
-    console.log("Custom element moved with moveBefore()");
+
   }
 
   adoptedCallback() {
-    console.log("Custom element moved to new page.");
+    
   }
 
   attributeChangedCallback(name, oldValue, newValue) {

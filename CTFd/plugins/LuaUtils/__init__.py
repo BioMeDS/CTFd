@@ -6,9 +6,8 @@ from flask import current_app,url_for,redirect
 import os
 
 def load(app):
-    cache.delete_memoized(_get_asset_json, os.path.join(
-            current_app.root_path, "plugins/emailnotifications/staticAssets/manifest.json"))
-    return 
+    cache.delete_memoized(_get_asset_json)
+    return
 
 class _LuaAsset():
     def __init__(self,directory):

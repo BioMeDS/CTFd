@@ -1,6 +1,10 @@
+
+from CTFd.cache import cache
+import os
 from CTFd.plugins.userchallenge.api_calls import challenges, comments, attempts, files, flags, hints, tags, topics
+from CTFd.utils import _get_asset_json
 from CTFd.utils.logging import log
-from flask import render_template,request,Blueprint, url_for, abort
+from flask import render_template,request,Blueprint, url_for, abort,current_app
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.models import Challenges, Solves, Flags, db, Configs,Flags
 from CTFd.utils.decorators import admins_only
@@ -9,6 +13,11 @@ from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route,toggl
 userChallenge = Blueprint('userchallenge',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):
+
+
+    cache.delete_memoized(_get_asset_json, os.path.join(
+            current_app.root_path, "plugins/userchallenge/staticAssets/manifest.json"))
+
     app.db.create_all()
     app.jinja_env.globals.update(UserChallengeAsset=_LuaAsset("userchallenge"))
     app.jinja_env.globals.update(UserChallengeReadOnly = isReadOnly)

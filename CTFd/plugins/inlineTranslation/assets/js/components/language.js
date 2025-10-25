@@ -1,5 +1,5 @@
-import CTFd from "../index";
 import Alpine from "alpinejs";
+import CTFd from "../index";
 
 Alpine.data("LanguageForm", () => ({
   async set(event) {
@@ -13,8 +13,9 @@ Alpine.data("LanguageForm", () => ({
         body: JSON.stringify({ language }),
       });
     }
-
+    
     // Reload with new language
     window.location.reload();
+    
   },
 }));

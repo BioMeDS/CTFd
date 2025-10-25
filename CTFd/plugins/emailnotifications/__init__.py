@@ -1,6 +1,7 @@
+import os
 from pathlib import Path
 from sqlalchemy.exc import IntegrityError
-from CTFd.utils import email
+from CTFd.utils import _get_asset_json, email
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.decorators.visibility import check_registration_visibility
 from CTFd.utils.helpers import get_errors, get_infos, markup
@@ -87,6 +88,9 @@ def get_user_check(user_id):
 emailNotifs = Blueprint('emailnotifications',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):
+
+    cache.delete_memoized(_get_asset_json, os.path.join(
+            current_app.root_path, "plugins/emailnotifications/staticAssets/manifest.json"))
 
     app.db.create_all()
     #intitalize jinja globals

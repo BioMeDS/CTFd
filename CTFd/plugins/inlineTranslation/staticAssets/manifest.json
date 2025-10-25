@@ -1,28 +1,28 @@
 {
-  "__commonjsHelpers-Cpj98o6Y.js": {
-    "file": "assets/_commonjsHelpers-Cpj98o6Y.js",
-    "name": "_commonjsHelpers"
-  },
   "_echarts-l0sNRNKZ.js": {
     "file": "assets/echarts-l0sNRNKZ.js",
     "name": "echarts"
   },
+  "_jquery-DBlGzj9j.js": {
+    "file": "assets/jquery-DBlGzj9j.js",
+    "name": "jquery"
+  },
   "assets/js/config.js": {
-    "file": "assets/js/config-BGZmt2hw.js",
+    "file": "assets/js/config-DeAJ3sO3.js",
     "name": "js/config",
     "src": "assets/js/config.js",
     "isEntry": true,
     "imports": [
-      "__commonjsHelpers-Cpj98o6Y.js"
+      "_jquery-DBlGzj9j.js"
     ]
   },
   "assets/js/page.js": {
-    "file": "assets/js/page-BR2TFhD4.js",
+    "file": "assets/js/page-B8ZdIq1e.js",
     "name": "js/page",
     "src": "assets/js/page.js",
     "isEntry": true,
     "imports": [
-      "__commonjsHelpers-Cpj98o6Y.js"
+      "_jquery-DBlGzj9j.js"
     ]
   }
 }
