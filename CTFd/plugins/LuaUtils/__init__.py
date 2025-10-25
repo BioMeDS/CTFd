@@ -53,11 +53,12 @@ class _LuaAsset():
 
 class ConfigPanel():
     """Data structure for config panel html"""
-    def __init__(self, name,desc,toggle,config):
+    def __init__(self, name,desc,toggle,config,*select):
         self.name = name
         self.desc = desc
         self.toggle = toggle
         self.config = config
+        self.select = select
 
 def toggle_config(key):
     """toggles provided config"""
