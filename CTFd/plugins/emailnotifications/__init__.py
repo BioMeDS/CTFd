@@ -18,7 +18,7 @@ from CTFd.utils.email import sendmail
 
 from CTFd.cache import cache
 from CTFd.models import Brackets, UserFieldEntries, UserFields, UserTokens, Users, db
-from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route, toggle_config
+from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_after_route, run_before_route, toggle_config
 from CTFd.utils.validators import ValidationError
 from CTFd.utils import user as current_user
 from CTFd.plugins.emailnotifications.forms import forms
@@ -98,6 +98,8 @@ def load(app):
     app.jinja_env.globals.update(NotificationForms=forms)
     app.jinja_env.globals.update(NotificationsGetCheck = get_user_check)
     app.register_blueprint(emailNotifs,url_prefix='/emailnotifications')
+
+    
     
     keys = ['sendEmailNotif','allowUserCheckmarkNotif','emailPrivacyNotif']
     for k in keys:
@@ -493,3 +495,4 @@ def load(app):
     run_before_route(app,'api.users_user_public',delete_user)
 
     registerTemplate("admin/users/user.html",'AdminUser.html')
+    registerTemplate("admin/users/users.html","AdminUsers.html")

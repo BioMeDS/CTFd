@@ -3,29 +3,47 @@
     "file": "assets/echarts-l0sNRNKZ.js",
     "name": "echarts"
   },
-  "_jquery-BT3bhPE2.js": {
-    "file": "assets/jquery-BT3bhPE2.js",
+  "_jquery-mni5jghp.js": {
+    "file": "assets/jquery-mni5jghp.js",
     "name": "jquery"
   },
+  "_main-VmkiMy_b.js": {
+    "file": "assets/main-VmkiMy_b.js",
+    "name": "main",
+    "imports": [
+      "_jquery-mni5jghp.js"
+    ]
+  },
   "assets/js/config.js": {
-    "file": "assets/js/config-D-5NnfbK.js",
+    "file": "assets/js/config-COwe5yDd.js",
     "name": "js/config",
     "src": "assets/js/config.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BT3bhPE2.js"
+      "_jquery-mni5jghp.js"
     ]
   },
   "assets/js/user.js": {
-    "file": "assets/js/user-DPCY5nbr.js",
+    "file": "assets/js/user-DQBh9g_k.js",
     "name": "js/user",
     "src": "assets/js/user.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BT3bhPE2.js"
+      "_main-VmkiMy_b.js",
+      "_jquery-mni5jghp.js"
     ],
     "css": [
       "assets/user-Bj1nZ2ug.css"
+    ]
+  },
+  "assets/js/users.js": {
+    "file": "assets/js/users-VhSZF7uB.js",
+    "name": "js/users",
+    "src": "assets/js/users.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-mni5jghp.js",
+      "_main-VmkiMy_b.js"
     ]
   }
 }

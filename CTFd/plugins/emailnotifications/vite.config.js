@@ -1,7 +1,7 @@
 const { resolve } = require("path");
-import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import copy from "rollup-plugin-copy";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -58,6 +58,7 @@ export default defineConfig({
       input: {
         "js/config" : resolve(__dirname,"assets/js/config.js"),
         "js/user" : resolve(__dirname,"assets/js/user.js"),
+        "js/users" : resolve(__dirname,"assets/js/users.js"),
       }
     }
   }
