@@ -82,8 +82,8 @@ def run_as_decorator(function,*last):
         def is_owned_wrapper(*args, **kwargs):
             if last:
                 ret = f(*args,**kwargs)
-                function(ret + list(*args), **kwargs)
-                return ret
+                new = function([ret] + list(*args), **kwargs)
+                return new if new else ret
             else:
                 function(*args, **kwargs)
                 return f(*args, **kwargs)
@@ -99,3 +99,13 @@ def run_after_route(app,key,function):
     """ runs provided function after given app.view_functions function (key) with response as first input"""
     delete_user_decorator = run_as_decorator(function,True)
     app.view_functions[key] = delete_user_decorator(app.view_functions[key])
+
+import difflib
+
+# https://stackoverflow.com/a/61107079
+def merge_text(text1:str, text2:str) -> str:
+    return "\n".join(
+        line[2:] for line in difflib.Differ().compare(
+            text1.split("\n"),
+            text2.split("\n")) 
+        if not line.startswith("?"))

@@ -17,7 +17,7 @@ def load(app):
 
     app.jinja_env.globals.update(InlineTranslationAssets=_LuaAsset("inlinetranslation"))
 
-    app.register_blueprint(inlineTranslation,url_prefix='/userchallenge')
+    app.register_blueprint(inlineTranslation,url_prefix='/inlinetranslation')
 
     registerTemplate('page.html','inlinepage.html')
 

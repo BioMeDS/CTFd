@@ -8,7 +8,7 @@ from CTFd.utils.decorators import require_complete_profile, require_verified_ema
 from CTFd.utils.decorators.visibility import check_challenge_visibility
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.plugins import override_template
-from flask import render_template, url_for, redirect,request, abort
+from flask import url_for, redirect,request, abort
 
 
 def during_ctf_time_only(f):
@@ -79,6 +79,5 @@ def load(app):
 
         return render_template("challenges.html", infos=infos, errors=errors)
     '''
-
     # blanket replacing all error 403s to not have the error number displayed
     registerTemplate('errors/403.html','403Modified.html')

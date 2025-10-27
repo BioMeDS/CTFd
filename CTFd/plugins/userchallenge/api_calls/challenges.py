@@ -1,5 +1,6 @@
 
 from CTFd.constants import config
+from CTFd.plugins.LuaUtils import run_before_route
 from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.security.signing import serialize
@@ -40,6 +41,7 @@ def load(app):
         clear_challenges()
 
         return {"success": True, "data": response}
+
     @app.route('/userchallenge/api/challenges/',methods=['GET'])
     def getChallenges():
 
@@ -307,28 +309,20 @@ def load(app):
 
         db.session.close()
         return {"success": True, "data": response}
-    @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['DELETE'])
+
     @admins_only
     @ReadOnly
-    def delete(challenge_id):
-        #delete UserChallenge reference
-        query = UserChallenges.query.filter_by(challenge=challenge_id)
-        userchal = query.first()
-        if userchal:
-            query.delete()
-            db.session.commit()
+    def delete_userchallenge(challenge_id):
+        if request.method == "DELETE":
+            #delete UserChallenge reference
+            query = UserChallenges.query.filter_by(challenge=challenge_id)
+            userchal = query.first()
+            if userchal:
+                query.delete()
+                db.session.commit()
 
-        #delete challenge
-        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        chal_class = get_chal_class(challenge.type)
-        chal_class.delete(challenge)
+    run_before_route(app,'api.challenges_challenge',delete_userchallenge)
 
-
-        clear_standings()
-        clear_challenges()
-
-        return {"success": True}
-    
     @app.route('/userchallenge/challenges/preview/<challenge_id>')
     @userChallenge_allowed
     def render_preview(challenge_id):

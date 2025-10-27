@@ -1,15 +1,13 @@
-
-from CTFd.cache import cache
-import os
 from CTFd.plugins.userchallenge.api_calls import challenges, comments, attempts, files, flags, hints, tags, topics
-from CTFd.utils import _get_asset_json
+from CTFd.utils import  config
+from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.logging import log
-from flask import render_template,request,Blueprint, url_for, abort,current_app
+from flask import render_template,request,Blueprint, url_for, abort
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.models import Challenges, Solves, Flags, db, Configs,Flags
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import admins_only, authed_only
 from CTFd.plugins.userchallenge.utils import *
-from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route,toggle_config
+from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, merge_text, run_after_route, run_before_route,toggle_config
 userChallenge = Blueprint('userchallenge',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):
@@ -26,8 +24,24 @@ def load(app):
         db.session.add(conf)
         db.session.commit()
 
-    registerTemplate('users/private.html','newUserPage.html')
-    registerTemplate('admin/challenges/challenge.html','adminChallenge.html')
+    @authed_only
+    def Challenge_user(res):
+        infos = get_infos()
+        errors = get_errors()
+
+        user = get_current_user()
+
+        if config.is_scoreboard_frozen():
+            infos.append("Scoreboard has been frozen")
+
+        return merge_text(res[0],render_template(
+            "newUserPage.html",
+            user=user,
+            account=user.account,
+            infos=infos,
+            errors=errors,
+        ))
+    run_after_route(app,'users.private',Challenge_user)
     
     # config page admins
     @app.route('/admin/userChallenge')
@@ -58,7 +72,7 @@ def load(app):
 
     # add creation date and user to listing
     @admins_only
-    def challenges_listing():
+    def challenges_listing(res):
         q = request.args.get("q")
         field = request.args.get("field")
         filters = []
@@ -80,20 +94,18 @@ def load(app):
             challenges.append(UserChallenge(n.id,n.name,n.category,author,n.value,n.type,n.state,date,lchange=lchange))
             
 
-        return render_template(
+        return merge_text(res[0],render_template(
             "adminChallenges.html",
             challenges=challenges,
             total=total,
             q=q,
-            field=field,)
-
-    app.view_functions['admin.challenges_listing'] = challenges_listing
+            field=field,))
+    run_after_route(app,'admin.challenges_listing',challenges_listing)
 
     @admins_only
     def delete_user(user_id):
         if request.method == "DELETE":
             UserChallenges.query.filter_by(user=user_id).delete()
-
     run_before_route(app,'api.users_user_public',delete_user)
 
     #config page api call
@@ -137,7 +149,6 @@ def load(app):
     @app.route('/userchallenge/challenges/<int:challenge_id>',methods=['GET'])
     @owned_by_user
     @userChallenge_allowed
-    @owned_by_user
     def updateChallenge(challenge_id):
         #TODO: update logic to work with plugin
         challenges = dict(

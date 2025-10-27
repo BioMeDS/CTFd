@@ -39,14 +39,14 @@
     "name": "jquery"
   },
   "assets/js/adminChallenge.js": {
-    "file": "assets/js/adminChallenge-BPYpz-CD.js",
+    "file": "assets/js/adminChallenge-C2TCQvwG.js",
     "name": "js/adminChallenge",
     "src": "assets/js/adminChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_jquery-BT3bhPE2.js",
       "_HintEditForm-DNEO1qNm.js",
+      "_jquery-BT3bhPE2.js",
       "_NextChallenge-B045kg1p.js"
     ]
   },

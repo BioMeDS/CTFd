@@ -129,11 +129,6 @@ def setLastChanged(id):
         setattr(query,'changed',time)
     db.session.commit()
 
-def registerTemplate(old_path, new_path):
-    dir_path = Path(__file__).parent.resolve()
-    template_path = dir_path/'templates'/new_path
-    override_template(old_path,open(template_path).read())
-
 def isReadOnly():
     return get_config('isReadOnlyUserChallenges')
 
