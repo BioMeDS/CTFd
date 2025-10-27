@@ -1,7 +1,7 @@
 import $ from "jquery";
+import CTFd from "./index";
 
 $(".toggle-button").click(function() {
-    this.id = this.value
     function foo (res) {
         $("#"+res.id).html(res.data)
         if(res.data === "enabled"){
@@ -9,7 +9,22 @@ $(".toggle-button").click(function() {
         }else{
             $("#"+res.id).removeClass("bg-success").addClass("bg-danger")
         }}
-        $.get(`/admin/inlineTranslation/config/${this.value}`,function(res){
-            foo(res)
-        })
+    $.get(`/admin/inlineTranslation/config/${this.id}`,function(res){
+        foo(res)
+    })
   });
+
+$("select").on('change',function(){
+    const val = this.value
+    CTFd.fetch(`/admin/inlineTranslation/config/${this.id}`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        value: this.value
+      }),
+    })  
+});

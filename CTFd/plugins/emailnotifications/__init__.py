@@ -89,9 +89,6 @@ emailNotifs = Blueprint('emailnotifications',__name__,template_folder='templates
 
 def load(app):
 
-    cache.delete_memoized(_get_asset_json, os.path.join(
-            current_app.root_path, "plugins/emailnotifications/staticAssets/manifest.json"))
-
     app.db.create_all()
     #intitalize jinja globals
     app.jinja_env.globals.update(EmailNotifAssets=_LuaAsset("emailnotifications"))
@@ -99,8 +96,6 @@ def load(app):
     app.jinja_env.globals.update(NotificationsGetCheck = get_user_check)
     app.register_blueprint(emailNotifs,url_prefix='/emailnotifications')
 
-    
-    
     keys = ['sendEmailNotif','allowUserCheckmarkNotif','emailPrivacyNotif']
     for k in keys:
         if get_config(k) == None:
@@ -321,7 +316,6 @@ def load(app):
 
     app.view_functions['auth.register'] = register
     
-    
     @app.route("/admin/emailNotifs/config/<configType>",methods=['GET','POST'])
     @admins_only
     def toggle_notifs(configType):
@@ -358,7 +352,7 @@ def load(app):
         
         configs = []
         configs.append(ConfigPanel("Email Notifications",
-                                   "Enabeling Email-Notifications sends all Notifications to all users per email. Disableling also removes the checkmark option from User profiles.",
+                                   "Enabeling Email-Notifications sends all Notifications to all users per email.\n Disabling also removes the checkmark option from User profiles.",
                                    notif,'sendEmailNotif'))
         configs.append(ConfigPanel("Opt out",
                                    "Toggles wether Users can opt out of email Notifications or not.",

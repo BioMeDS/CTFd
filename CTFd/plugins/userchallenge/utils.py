@@ -33,7 +33,6 @@ class UserChallenge:
         self.creation = creation
         self.lastChanged = lchange
 
-
 def add_User_Link(challenge_id):
     userchallenge = UserChallenges(get_current_user().id,challenge_id,datetime.datetime.utcnow())
     db.session.add(userchallenge)

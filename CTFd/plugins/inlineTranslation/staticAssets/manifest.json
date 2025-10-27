@@ -3,26 +3,26 @@
     "file": "assets/echarts-l0sNRNKZ.js",
     "name": "echarts"
   },
-  "_jquery-DBlGzj9j.js": {
-    "file": "assets/jquery-DBlGzj9j.js",
-    "name": "jquery"
+  "_index-B0cMktUh.js": {
+    "file": "assets/index-B0cMktUh.js",
+    "name": "index"
   },
   "assets/js/config.js": {
-    "file": "assets/js/config-DeAJ3sO3.js",
+    "file": "assets/js/config-CWCHQjAi.js",
     "name": "js/config",
     "src": "assets/js/config.js",
     "isEntry": true,
     "imports": [
-      "_jquery-DBlGzj9j.js"
+      "_index-B0cMktUh.js"
     ]
   },
   "assets/js/page.js": {
-    "file": "assets/js/page-B8ZdIq1e.js",
+    "file": "assets/js/page-DQbRQ-8d.js",
     "name": "js/page",
     "src": "assets/js/page.js",
     "isEntry": true,
     "imports": [
-      "_jquery-DBlGzj9j.js"
+      "_index-B0cMktUh.js"
     ]
   }
 }

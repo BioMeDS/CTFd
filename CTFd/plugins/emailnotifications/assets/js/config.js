@@ -13,3 +13,5 @@ $(".toggle-button").click(function() {
             foo(res)
         })
   });
+
+  $()

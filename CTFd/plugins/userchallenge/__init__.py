@@ -13,11 +13,6 @@ from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, run_before_route,toggl
 userChallenge = Blueprint('userchallenge',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):
-
-
-    cache.delete_memoized(_get_asset_json, os.path.join(
-            current_app.root_path, "plugins/userchallenge/staticAssets/manifest.json"))
-
     app.db.create_all()
     app.jinja_env.globals.update(UserChallengeAsset=_LuaAsset("userchallenge"))
     app.jinja_env.globals.update(UserChallengeReadOnly = isReadOnly)

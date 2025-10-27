@@ -2,7 +2,7 @@ import functools
 from CTFd.cache import cache
 from CTFd.utils import _get_asset_json, get_asset_json, get_config, set_config
 from CTFd.utils.helpers import markup
-from flask import current_app,url_for,redirect
+from flask import current_app,url_for
 import os
 
 def load(app):
@@ -53,12 +53,12 @@ class _LuaAsset():
 
 class ConfigPanel():
     """Data structure for config panel html"""
-    def __init__(self, name,desc,toggle,config,*select):
+    def __init__(self, name,desc,toggle,config,*options):
         self.name = name
         self.desc = desc
         self.toggle = toggle
         self.config = config
-        self.select = select
+        self.options = options[0] if options else None
 
 def toggle_config(key):
     """toggles provided config"""

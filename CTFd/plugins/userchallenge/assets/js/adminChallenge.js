@@ -1,21 +1,21 @@
-import "./main";
-import $ from "jquery";
-import "./compat/json";
-import "bootstrap/js/dist/tab";
-import CTFd from "./compat/CTFd";
 import { htmlEntities } from "@ctfdio/ctfd-js/utils/html";
-import { ezQuery, ezAlert, ezToast } from "./compat/ezq";
-import { default as helpers } from "./compat/helpers";
-import { bindMarkdownEditors } from "./styles";
+import "bootstrap/js/dist/tab";
+import $ from "jquery";
 import Vue from "vue";
+import CTFd from "./compat/CTFd";
+import { ezAlert, ezQuery, ezToast } from "./compat/ezq";
+import { default as helpers } from "./compat/helpers";
+import "./compat/json";
 import CommentBox from "./components/comments/CommentBox.vue";
-import FlagList from "./components/flags/FlagList.vue";
-import Requirements from "./components/requirements/Requirements.vue";
-import TopicsList from "./components/topics/TopicsList.vue";
-import TagsList from "./components/tags/TagsList.vue";
 import ChallengeFilesList from "./components/files/ChallengeFilesList.vue";
+import FlagList from "./components/flags/FlagList.vue";
 import HintsList from "./components/hints/HintsList.vue";
 import NextChallenge from "./components/next/NextChallenge.vue";
+import Requirements from "./components/requirements/Requirements.vue";
+import TagsList from "./components/tags/TagsList.vue";
+import TopicsList from "./components/topics/TopicsList.vue";
+import "./main";
+import { bindMarkdownEditors } from "./styles";
 
 function loadChalTemplate(challenge) {
   CTFd._internal.challenge = {};
