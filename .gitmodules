@@ -1,0 +1,12 @@
+[submodule "CTFd/plugins/emailnotifications"]
+	path = CTFd/plugins/emailnotifications
+	url = https://github.com/CCTB-UW/emailnotifications
+[submodule "CTFd/plugins/userchallenge"]
+	path = CTFd/plugins/userchallenge
+	url = https://github.com/CCTB-UW/userchallenge
+[submodule "CTFd/plugins/inlineTranslation"]
+	path = CTFd/plugins/inlineTranslation
+	url = https://github.com/CCTB-UW/inlineTranslation
+[submodule "CTFd/plugins/LuaUtils"]
+	path = CTFd/plugins/LuaUtils
+	url = https://github.com/CCTB-UW/LuaUtils
