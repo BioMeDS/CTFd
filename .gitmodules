@@ -1,6 +1,3 @@
-[submodule "CTFd/plugins/emailnotifications"]
-	path = CTFd/plugins/emailnotifications
-	url = https://github.com/CCTB-UW/emailnotifications
 [submodule "CTFd/plugins/userchallenge"]
 	path = CTFd/plugins/userchallenge
 	url = https://github.com/CCTB-UW/userchallenge
