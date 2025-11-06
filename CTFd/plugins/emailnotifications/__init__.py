@@ -2,6 +2,7 @@ from CTFd.utils.modes import TEAMS_MODE
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import not_
 from CTFd.utils.config import is_teams_mode
+from CTFd.utils.logging import log
 from CTFd.utils.decorators.visibility import check_registration_visibility
 from CTFd.utils.helpers import get_errors, get_infos, markup
 from CTFd.utils import set_config,get_config
@@ -71,7 +72,7 @@ def send_mail_all_users(notif):
 
 def get_user_check(user_id):
         query = db.session.query(UserNotifs).filter(UserNotifs.user == user_id).first()
-        return 'true' if query.data else 'false'
+        return 'true' if query and query.data else 'false'
 
 emailNotifs = Blueprint('emailnotifications',__name__,template_folder='templates',static_folder ='staticAssets')
 
@@ -239,7 +240,7 @@ def load(app):
 
     @authed_only
     def set_notif_check():
-        if request.method == "PATCH":
+        if get_config('sendEmailNotif') and request.method == "PATCH":
             user = get_current_user()
             data = request.get_json()
             # email notifications update

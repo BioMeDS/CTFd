@@ -1,4 +1,4 @@
-import{$ as e}from"../jquery-mni5jghp.js";import{i as r,C as l,l as u}from"../main-VmkiMy_b.js";function d(a){let t=e("input[data-user-id]:checked").map(function(){return e(this).data("user-id")}),i=t.length===1?"user":"users";r({title:"Delete Users",body:`Are you sure you want to delete ${t.length} ${i}?`,success:function(){const o=[];for(var s of t)o.push(l.fetch(`/api/v1/users/${s}`,{method:"DELETE"}));Promise.all(o).then(n=>{window.location.reload()})}})}function p(a){let t=e("input[data-user-id]:checked").map(function(){return e(this).data("user-id")});u({title:"Edit Users",body:e(`
+import{$ as e}from"../jquery-mni5jghp.js";import{i as r,C as s,l as u}from"../main-VmkiMy_b.js";function d(a){let t=e("input[data-user-id]:checked").map(function(){return e(this).data("user-id")}),i=t.length===1?"user":"users";r({title:"Delete Users",body:`Are you sure you want to delete ${t.length} ${i}?`,success:function(){const o=[];for(var l of t)o.push(s.fetch(`/api/v1/users/${l}`,{method:"DELETE"}));Promise.all(o).then(n=>{window.location.reload()})}})}function p(a){let t=e("input[data-user-id]:checked").map(function(){return e(this).data("user-id")});u({title:"Edit Users",body:e(`
     <form id="users-bulk-edit">
       <div class="form-group">
         <label>Verified</label>
@@ -33,4 +33,4 @@ import{$ as e}from"../jquery-mni5jghp.js";import{i as r,C as l,l as u}from"../ma
         </select>
       </div>
     </form>
-    `),button:"Submit",success:function(){let i=e("#users-bulk-edit").serializeJSON(!0);const o=[];for(var s of t)o.push(l.fetch(`/api/v1/users/${s}`,{method:"PATCH",body:JSON.stringify(i)}));Promise.all(o).then(n=>{window.location.reload()})}})}e(()=>{e("#users-delete-button").click(d),e("#users-edit-button").click(p)});
+    `),button:"Submit",success:function(){let i=e("#users-bulk-edit").serializeJSON(!0);console.log(i);const o=[];for(var l of t)o.push(s.fetch(`/api/v1/users/${l}`,{method:"PATCH",body:JSON.stringify(i)}));Promise.all(o).then(n=>{window.location.reload()})}})}e(()=>{e("#users-delete-button").click(d),e("#users-edit-button").click(p)});

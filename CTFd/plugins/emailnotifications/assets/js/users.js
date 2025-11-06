@@ -75,6 +75,7 @@ function bulkEditUsers(_event) {
     button: "Submit",
     success: function () {
       let data = $("#users-bulk-edit").serializeJSON(true);
+      console.log(data);
       const reqs = [];
       for (var userID of userIDs) {
         reqs.push(
