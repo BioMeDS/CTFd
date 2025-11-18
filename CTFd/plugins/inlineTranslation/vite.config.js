@@ -55,7 +55,7 @@ export default defineConfig({
         }
       },
       input: {
-        "js/page" :resolve(__dirname,"assets/js/page.js"),
+        "js/inlineTranslation" :resolve(__dirname,"assets/js/inlineTranslation.js"),
         "js/config" : resolve(__dirname,"assets/js/config.js"),
       }
     }

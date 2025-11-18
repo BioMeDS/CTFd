@@ -19,7 +19,10 @@ def load(app):
 
     app.register_blueprint(inlineTranslation,url_prefix='/inlinetranslation')
 
-    registerTemplate('page.html','inlinepage.html')
+    registerTemplate('base.html','inlinebase.html')
+    registerTemplate('admin/base.html','admininlinebase.html')
+    registerTemplate('page.html',"inlinepage.html")
+    registerTemplate('admin/page.html',"inlinepage.html")
 
     @app.route("/admin/inlineTranslation/config/<configType>",methods=['GET'])
     @admins_only
