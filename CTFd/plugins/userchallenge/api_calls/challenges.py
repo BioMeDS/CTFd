@@ -1,6 +1,6 @@
 
 from CTFd.constants import config
-from CTFd.plugins.LuaUtils import run_before_route
+from CTFd.plugins.LuaUtils import run_after_route, run_before_route
 from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.security.signing import serialize
@@ -321,7 +321,7 @@ def load(app):
                 query.delete()
                 db.session.commit()
 
-    run_before_route(app,'api.challenges_challenge',delete_userchallenge)
+    #run_after_route(app,'api.challenges_challenge',delete_userchallenge)
 
     @app.route('/userchallenge/challenges/preview/<challenge_id>')
     @userChallenge_allowed

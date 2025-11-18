@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "inlinebase.html" %}
 
 {% block content %}
   <div class="container">
@@ -7,5 +7,6 @@
 {% endblock %}
 
 {% block scripts %}
-  {{ InlineTranslationAssets.js("assets/js/page.js") }}
+  {{ Assets.js("assets/js/page.js") }}
+  {{ InlineTranslationAssets.js("assets/js/inlineTranslation.js") }}
 {% endblock %}
