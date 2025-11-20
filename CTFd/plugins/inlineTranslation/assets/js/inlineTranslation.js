@@ -4,17 +4,14 @@ import { langPanel } from './lang-panel';
 window.customElements.define("lang-panel", langPanel);
 
 //filter out lang-panels 
-(async ()=>{
+const callback = async ()=>{
     var found = false
-
     const lang = document.cookie
         .split(";")
         .find((row)=> row.startsWith("language="))
         ?.split("=")[1];
-    console.log(lang)
     $("lang-panel").hide();
     const found_panels = $(`lang-panel[lang=${lang}]`);
-    console.log(found_panels);
     if(found_panels.length > 0){
         found_panels.show();
         found = true;
@@ -26,4 +23,13 @@ window.customElements.define("lang-panel", langPanel);
             $(`lang-panel[lang=${res.data}]`).show();
         });
     }
-})();
+};
+
+callback();
+
+//challenge view
+const observer = new MutationObserver(callback);
+const woppy = $("#challenge-window")[0];
+observer.observe(woppy,{attributes: true});
+
+

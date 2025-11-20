@@ -27,7 +27,7 @@ export class langPanel extends HTMLElement{
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}`);
+    
   }
 }
 
