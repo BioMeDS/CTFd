@@ -1,14 +1,17 @@
 import functools
 from pathlib import Path
+
+from flask import abort, redirect, request, url_for
+
 from CTFd.constants.config import ChallengeVisibilityTypes
 from CTFd.models import Configs
+from CTFd.utils import config
+from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctf_started, ctftime, view_after_ctf
-from CTFd.utils import config, user as current_user
 from CTFd.utils.decorators import require_complete_profile, require_verified_emails
 from CTFd.utils.decorators.visibility import check_challenge_visibility
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.plugins import override_template
-from flask import url_for, redirect,request, abort
 
 
 def during_ctf_time_only(f):

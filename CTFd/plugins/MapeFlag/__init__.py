@@ -1,5 +1,6 @@
 from CTFd.plugins import register_plugin_assets_directory
-from CTFd.plugins.flags import BaseFlag, FlagException, FLAG_CLASSES
+from CTFd.plugins.flags import FLAG_CLASSES, BaseFlag, FlagException
+
 
 class CTFdMAPEFlag(BaseFlag):
     name = "mape"

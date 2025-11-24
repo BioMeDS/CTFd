@@ -1,9 +1,13 @@
+import difflib
 import functools
+import os
+
+from flask import current_app, url_for
+
 from CTFd.cache import cache
 from CTFd.utils import _get_asset_json, get_asset_json, get_config, set_config
 from CTFd.utils.helpers import markup
-from flask import current_app,url_for
-import os
+
 
 def load(app):
     cache.delete_memoized(_get_asset_json)
@@ -100,12 +104,10 @@ def run_after_route(app,key,function):
     delete_user_decorator = run_as_decorator(function,True)
     app.view_functions[key] = delete_user_decorator(app.view_functions[key])
 
-import difflib
-
 # https://stackoverflow.com/a/61107079
 def merge_text(text1:str, text2:str) -> str:
     return "\n".join(
         line[2:] for line in difflib.Differ().compare(
             text1.split("\n"),
-            text2.split("\n")) 
+            text2.split("\n"))
         if not line.startswith("?"))
