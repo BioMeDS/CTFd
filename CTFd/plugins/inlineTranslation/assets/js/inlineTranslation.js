@@ -30,6 +30,9 @@ callback();
 //challenge view
 const observer = new MutationObserver(callback);
 const woppy = $("#challenge-window")[0];
-observer.observe(woppy,{attributes: true});
+if (woppy) {
+    observer.observe(woppy,{attributes: true});
+}
+
 
 

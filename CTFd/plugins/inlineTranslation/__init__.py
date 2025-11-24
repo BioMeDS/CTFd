@@ -2,6 +2,7 @@ from pathlib import Path
 from CTFd.constants.languages import SELECT_LANGUAGE_LIST
 from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, toggle_config
 from CTFd.utils import get_config, set_config
+from CTFd.utils.logging import log
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.plugins import override_template
 from flask import render_template,Blueprint,request
@@ -16,6 +17,8 @@ def registerTemplate(old_path, new_path):
 def load(app):
 
     app.jinja_env.globals.update(InlineTranslationAssets=_LuaAsset("inlinetranslation"))
+
+    set_config("inlineTranslationStandard",get_config("default_locale"))
 
     app.register_blueprint(inlineTranslation,url_prefix='/inlinetranslation')
 
@@ -42,7 +45,6 @@ def load(app):
         key = configType
         value = request.get_json()["value"]
         set_config(key,value)
-
         return {"success":True}
     
     @app.route("/admin/inlineTranslation")

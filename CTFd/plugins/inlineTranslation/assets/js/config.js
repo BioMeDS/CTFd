@@ -15,7 +15,6 @@ $(".toggle-button").click(function() {
   });
 
 $("select").on('change',function(){
-    const val = this.value
     CTFd.fetch(`/admin/inlineTranslation/config/${this.id}`, {
       method: "POST",
       credentials: "same-origin",
