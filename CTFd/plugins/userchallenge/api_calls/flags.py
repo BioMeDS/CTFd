@@ -1,11 +1,13 @@
 
 
-from CTFd.models import Flags,db
+from flask import render_template, request
+
+from CTFd.models import Flags, db
 from CTFd.plugins.challenges import CHALLENGE_CLASSES
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.flags import FlagSchema
-from flask import render_template,request
+
 
 def load(app):
     @app.route('/userchallenge/api/challenges/types')

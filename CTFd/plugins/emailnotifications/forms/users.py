@@ -1,8 +1,13 @@
-
-
-from CTFd.forms.users import UserBaseForm, attach_custom_user_fields, attach_user_bracket_field, build_custom_user_fields, build_user_bracket_field
 from wtforms import SelectField
-from flask_babel import lazy_gettext as _l
+
+from CTFd.forms.users import (
+    UserBaseForm,
+    attach_custom_user_fields,
+    attach_user_bracket_field,
+    build_custom_user_fields,
+    build_user_bracket_field,
+)
+
 
 def UserEditForm(*args, **kwargs):
     class _UserEditForm(UserBaseForm):

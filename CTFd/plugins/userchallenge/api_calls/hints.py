@@ -1,10 +1,10 @@
 
 
 from flask import request
-from CTFd.models import HintUnlocks, Hints
+
+from CTFd.models import Hints, HintUnlocks, db
 from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.hints import HintSchema
-from CTFd.models import db
 from CTFd.utils.user import get_current_user, is_admin
 
 

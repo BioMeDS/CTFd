@@ -15,6 +15,7 @@ from CTFd.forms.users import (
 from CTFd.utils.countries import SELECT_COUNTRIES_LIST
 from CTFd.utils.user import get_current_user, get_current_user_attrs
 
+
 def SettingsForm(*args, **kwargs):
     class _SettingsForm(BaseForm):
         name = StringField(_l("User Name"))

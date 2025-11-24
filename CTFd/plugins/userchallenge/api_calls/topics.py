@@ -1,9 +1,11 @@
+from flask import request
+
 from CTFd.api.v1.helpers.request import validate_args
-from CTFd.models import ChallengeTopics as ChallengeTopicsModel, Topics
-from CTFd.models import ChallengeTopics,db
+from CTFd.models import ChallengeTopics, Topics, db
+from CTFd.models import ChallengeTopics as ChallengeTopicsModel
 from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.topics import ChallengeTopicSchema, TopicSchema
-from flask import request
+
 
 def load(app):
     @app.route('/userchallenge/api/challenges/<challenge_id>/topics', methods=['GET'])

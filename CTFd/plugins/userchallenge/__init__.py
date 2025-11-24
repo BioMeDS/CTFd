@@ -1,13 +1,31 @@
-from CTFd.plugins.userchallenge.api_calls import challenges, comments, attempts, files, flags, hints, tags, topics
-from CTFd.utils import  config
+from flask import Blueprint, abort, render_template, request, url_for
+
+from CTFd.models import Challenges, Configs, Flags, Solves, db
+from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
+from CTFd.plugins.LuaUtils import (
+    ConfigPanel,
+    _LuaAsset,
+    merge_text,
+    run_after_route,
+    run_before_route,
+    toggle_config,
+)
+from CTFd.plugins.userchallenge.api_calls import (
+    attempts,
+    challenges,
+    comments,
+    files,
+    flags,
+    hints,
+    tags,
+    topics,
+)
+from CTFd.plugins.userchallenge.utils import *
+from CTFd.utils import config
+from CTFd.utils.decorators import admins_only, authed_only
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.logging import log
-from flask import render_template,request,Blueprint, url_for, abort
-from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
-from CTFd.models import Challenges, Solves, Flags, db, Configs,Flags
-from CTFd.utils.decorators import admins_only, authed_only
-from CTFd.plugins.userchallenge.utils import *
-from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, merge_text, run_after_route, run_before_route,toggle_config
+
 userChallenge = Blueprint('userchallenge',__name__,template_folder='templates',static_folder ='staticAssets')
 
 def load(app):

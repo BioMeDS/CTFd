@@ -1,12 +1,15 @@
+from flask import request
+from flask_restx import Namespace
+
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.constants import RawEnum
+from CTFd.models import ChallengeFiles as ChallengeFilesModel
+from CTFd.models import Files, db
 from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
 from CTFd.utils.helpers.models import build_model_filters
-from flask import request
-from flask_restx import Namespace
-from CTFd.models import ChallengeFiles as ChallengeFilesModel, Files,db
+
 
 def load(app):
     @app.route('/userchallenge/api/challenges/<challenge_id>/files', methods=['GET'])

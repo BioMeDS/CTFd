@@ -1,16 +1,18 @@
+from flask import abort, request
+
 from CTFd.cache import clear_challenges, clear_standings
 from CTFd.models import Challenges, Fails, Solves
 from CTFd.plugins.challenges import get_chal_class
 from CTFd.plugins.userchallenge.utils import userChallenge_allowed
 from CTFd.utils import config, get_config
+from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_paused, ctftime
 from CTFd.utils.decorators import during_ctf_time_only, require_verified_emails
 from CTFd.utils.decorators.visibility import check_challenge_visibility
 from CTFd.utils.humanize.words import pluralize
 from CTFd.utils.logging import log
 from CTFd.utils.user import authed, get_current_team, get_current_user
-from CTFd.utils import  user as current_user
-from flask import request, abort
+
 
 def load(app):
     

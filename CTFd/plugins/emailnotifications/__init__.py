@@ -1,21 +1,27 @@
-from CTFd.utils.modes import TEAMS_MODE
+from flask import Blueprint, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import not_
-from CTFd.utils.config import is_teams_mode
-from CTFd.utils.logging import log
-from CTFd.utils.decorators.visibility import check_registration_visibility
-from CTFd.utils.helpers import get_errors, get_infos, markup
-from CTFd.utils import set_config,get_config
-from CTFd.utils.decorators import admins_only, authed_only, ratelimit
-from CTFd.utils.user import get_current_team, get_current_user
-from flask import render_template,request,Blueprint,url_for
-
-from CTFd.utils.email import sendmail
 
 from CTFd.cache import cache
-from CTFd.models import Challenges, Tracking, UserTokens, Users, db
-from CTFd.plugins.LuaUtils import _LuaAsset, ConfigPanel, merge_text, run_after_route, run_before_route, toggle_config
+from CTFd.models import Challenges, Tracking, Users, UserTokens, db
 from CTFd.plugins.emailnotifications.forms import forms
+from CTFd.plugins.LuaUtils import (
+    ConfigPanel,
+    _LuaAsset,
+    merge_text,
+    run_after_route,
+    run_before_route,
+    toggle_config,
+)
+from CTFd.utils import get_config, set_config
+from CTFd.utils.config import is_teams_mode
+from CTFd.utils.decorators import admins_only, authed_only, ratelimit
+from CTFd.utils.decorators.visibility import check_registration_visibility
+from CTFd.utils.email import sendmail
+from CTFd.utils.helpers import get_errors, get_infos, markup
+from CTFd.utils.logging import log
+from CTFd.utils.modes import TEAMS_MODE
+from CTFd.utils.user import get_current_team, get_current_user
 
 
 class UserNotifs(db.Model):

@@ -1,10 +1,10 @@
 
 
 from flask import request
-from CTFd.models import Tags,db
+
+from CTFd.models import Tags, db
 from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
 from CTFd.schemas.tags import TagSchema
-
 
 
 def load(app):

@@ -1,6 +1,6 @@
 
-from CTFd.plugins.emailnotifications.forms import settings
-from CTFd.plugins.emailnotifications.forms import users
+from CTFd.plugins.emailnotifications.forms import settings, users
+
 
 class _FormsWrapper:
     pass
