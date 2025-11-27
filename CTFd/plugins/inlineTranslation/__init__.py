@@ -6,7 +6,6 @@ from CTFd.constants.languages import SELECT_LANGUAGE_LIST
 from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset, toggle_config
 from CTFd.utils import get_config, set_config
 from CTFd.utils.decorators import admins_only
-from CTFd.utils.logging import log
 from CTFd.utils.plugins import override_template
 
 inlineTranslation = Blueprint(
