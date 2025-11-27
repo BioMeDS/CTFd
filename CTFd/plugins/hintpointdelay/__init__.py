@@ -1,11 +1,15 @@
 
-from flask import request
+from flask import Blueprint, render_template, request
 
 from CTFd.cache import clear_standings
+from CTFd.constants.languages import SELECT_LANGUAGE_LIST
 from CTFd.models import Hints, Unlocks, db, get_class_by_tablename
+from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset
 from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.unlocks import UnlockSchema
+from CTFd.utils import get_config
 from CTFd.utils.decorators import (
+    admins_only,
     authed_only,
     during_ctf_time_only,
     require_verified_emails,
@@ -29,9 +33,19 @@ class DelayedHints(db.Model):
         self.challenge = hint.challenge_id
 
 
+hintpoint = Blueprint(
+    "hintpointdelay",
+    __name__,
+    template_folder="templates",
+    static_folder="staticAssets",
+)
+
 def load(app):
     app.db.create_all()
-    
+
+    app.jinja_env.globals.update(hintpointassets=_LuaAsset("hintpointdelay"))
+    app.register_blueprint(hintpoint, url_prefix="/hintpointdelay")
+
     def get_modified_challenge_points(challenge):
         user = get_current_user()
         hintids = DelayedHints.query.filter(
@@ -91,6 +105,21 @@ def load(app):
                     db.session.close()
                     clear_standings()        
 
+
+    @app.route("/admin/hintpointdelay")
+    @admins_only
+    def hintpoint_config():
+        standard = get_config("inlineTranslationStandard")
+        configs = [
+            ConfigPanel(
+                "Standard Language",
+                "Set the standard language.",
+                standard,
+                "inlineTranslationStandard",
+                SELECT_LANGUAGE_LIST,
+            )
+        ]
+        return render_template("hintconfig.html", configs=configs)
 
     @during_ctf_time_only
     @require_verified_emails
