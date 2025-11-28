@@ -1,3 +1,5 @@
+import re
+
 from flask import Blueprint, render_template, request, url_for
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import not_
@@ -402,17 +404,15 @@ def load(app):
 
         args = dict(request.args)
         args.pop("page", 1)
+        edited = re.sub("<script\s+type=\"module\"\s+src=\"\/themes\/admin.+<\/script>","",str(res[0]))
 
-        return merge_text(
-            res[0],
-            render_template(
-                "AdminUsers.html",
-                users=users,
-                prev_page=url_for(request.endpoint, page=users.prev_num, **args),
-                next_page=url_for(request.endpoint, page=users.next_num, **args),
-                q=q,
-                field=field,
-            ),
-        )
+        return merge_text(edited,render_template(
+            "AdminUsers.html",
+            users=users,
+            prev_page=url_for(request.endpoint, page=users.prev_num, **args),
+            next_page=url_for(request.endpoint, page=users.next_num, **args),
+            q=q,
+            field=field,
+        ))
 
     run_after_route(app, "admin.users_listing", modify_users)
