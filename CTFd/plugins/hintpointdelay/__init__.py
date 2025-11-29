@@ -3,8 +3,8 @@ from flask import Blueprint, render_template, request
 
 from CTFd.cache import clear_standings
 from CTFd.constants.languages import SELECT_LANGUAGE_LIST
-from CTFd.models import Hints, Unlocks, db, get_class_by_tablename
-from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset
+from CTFd.models import Awards, Hints, Unlocks, db, get_class_by_tablename
+from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset, run_after_route
 from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils import get_config
@@ -14,6 +14,7 @@ from CTFd.utils.decorators import (
     during_ctf_time_only,
     require_verified_emails,
 )
+from CTFd.utils.logging import log
 from CTFd.utils.user import get_current_user
 
 
@@ -32,21 +33,7 @@ class DelayedHints(db.Model):
         self.hint = hint.id
         self.challenge = hint.challenge_id
 
-
-hintpoint = Blueprint(
-    "hintpointdelay",
-    __name__,
-    template_folder="templates",
-    static_folder="staticAssets",
-)
-
-def load(app):
-    app.db.create_all()
-
-    app.jinja_env.globals.update(hintpointassets=_LuaAsset("hintpointdelay"))
-    app.register_blueprint(hintpoint, url_prefix="/hintpointdelay")
-
-    def get_modified_challenge_points(challenge):
+def get_modified_challenge_points(challenge):
         user = get_current_user()
         hintids = DelayedHints.query.filter(
                 DelayedHints.challenge == challenge.id,
@@ -63,49 +50,67 @@ def load(app):
         
         return score
     
-    def apply_delayed_hints(challenge):
-        user = get_current_user()
-        hintids = DelayedHints.query.filter(
-                DelayedHints.challenge == challenge.id,
-                DelayedHints.user == user.id,
-            ).all()
+def apply_delayed_hints(challenge):
+    user = get_current_user()
+    hintids = DelayedHints.query.filter(
+            DelayedHints.challenge == challenge.id,
+            DelayedHints.user == user.id,
+        ).all()
 
-        if hintids:
-            for hid in hintids:
-                hint = Hints.query.filter(
-                            Hints.id== hid,
-                        ).first()
-                if hint:
-                    name = hint.name
-                    description = hint.description
-                    category = hint.category
-                    user_id = user.id
-                    user_awards = user.awards
+    if hintids:
+        for hid in hintids:
+            hint = Hints.query.filter(
+                        Hints.id== hid,
+                    ).first()
+            if hint:
+                name = hint.name
+                description = hint.description
+                category = hint.category
+                user_id = user.id
+                user_awards = user.awards
 
-                    for award in user_awards:
-                        if award.cost == 0 and award.name == name and award.description == description and award.category == category and (award.user_id == user_id or award.team_id == user.team_id):
-                            #delete old award
-                            db.session.delete(award)
+                for award in user_awards:
+                    if award.value == 0 and award.name == name and award.description == description and award.category == category and (award.user_id == user_id or award.team_id == user.team_id):
+                        #delete old award
+                        db.session.delete(award)
 
-                            #create new award with cost
-                            award_schema = AwardSchema()
-                            new_award = {
-                                "user_id": user.id,
-                                "team_id": user.team_id,
-                                "name": hint.name,
-                                "description": hint.description,
-                                "value": (-hint.cost),
-                                "category": hint.category,
-                            }
+                        #create new award with cost
+                        award_schema = AwardSchema()
+                        new_award = {
+                            "user_id": user.id,
+                            "team_id": user.team_id,
+                            "name": hint.name,
+                            "description": hint.description,
+                            "value": (-hint.cost),
+                            "category": hint.category,
+                        }
 
-                            new_award = award_schema.load(new_award)
-                            db.session.add(new_award.data)
-                            
-                    db.session.commit()
-                    db.session.close()
-                    clear_standings()        
+                        new_award = award_schema.load(new_award)
+                        db.session.add(new_award.data)
+                        break
+                
+                db.session.delete(hint)
+                db.session.commit()
+                db.session.close()
+                clear_standings()        
 
 
+hintpoint = Blueprint(
+    "hintpointdelay",
+    __name__,
+    template_folder="templates",
+    static_folder="staticAssets",
+)
+
+def load(app):
+    app.db.create_all()
+
+    #jinja globals 
+    app.jinja_env.globals.update(hintpointvalue=get_modified_challenge_points)
+    app.jinja_env.globals.update(hintpointassets=_LuaAsset("hintpointdelay"))
+    app.register_blueprint(hintpoint, url_prefix="/hintpointdelay")
+
+    #config page    
     @app.route("/admin/hintpointdelay")
     @admins_only
     def hintpoint_config():
@@ -125,6 +130,54 @@ def load(app):
             )
         ]
         return render_template("hintconfig.html", configs=configs)
+
+    #modified award unlock
+    def modify_award(res):
+        req = request.get_json()
+        award_data = res[0].get_json()
+        if not award_data['success']:
+            return
+        
+        user = get_current_user()
+
+        Model = get_class_by_tablename(req["type"])
+        hint = Model.query.filter_by(id=req["target"]).first_or_404()
+
+        if(req["type"] == "hints"):
+            name = hint.name
+            description = hint.description
+            category = hint.category
+            user_id = user.id
+            user_awards = user.awards
+
+            for award in user_awards:
+                if award.value != 0 and award.name == name and award.description == description and award.category == category and (award.user_id == user_id or award.team_id == user.team_id):
+                    #delete old award
+                    db.session.delete(award)
+
+                    #create new award with cost
+                    award_schema = AwardSchema()
+                    new_award = {
+                        "user_id": user.id,
+                        "team_id": user.team_id,
+                        "name": hint.name,
+                        "description": hint.description,
+                        "value": (0),
+                        "category": hint.category,
+                    }
+
+                    new_award = award_schema.load(new_award)
+                    db.session.add(new_award.data)
+
+                    delayedhint = DelayedHints(user,hint)
+                    db.session.add(delayedhint)
+                    break
+
+            db.session.commit()
+            clear_standings()
+    
+
+    run_after_route(app,'api.unlocks_unlock_list',modify_award)
 
     @during_ctf_time_only
     @require_verified_emails
@@ -198,6 +251,7 @@ def load(app):
             response = schema.dump(response.data)
 
             return {"success": True, "data": response.data}
+        
         elif target_type == "solutions":
             schema = UnlockSchema()
             response = schema.load(req, session=db.session)
@@ -235,4 +289,3 @@ def load(app):
                 },
                 400,
             )
-
