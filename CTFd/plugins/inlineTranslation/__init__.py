@@ -34,25 +34,6 @@ def load(app):
     registerTemplate("page.html", "inlinepage.html")
     registerTemplate("admin/page.html", "inlinepage.html")
 
-    @app.route("/admin/inlineTranslation/config/<configType>", methods=["GET"])
-    @admins_only
-    def toggle_inlines(configType):
-        key = configType
-        newstate = toggle_config(key)
-        data = "disabled"
-        if newstate:
-            data = "enabled"
-
-        return {"success": True, "data": data, "id": key}
-
-    @app.route("/admin/inlineTranslation/config/<configType>", methods=["POST"])
-    @admins_only
-    def set_inlines(configType):
-        key = configType
-        value = request.get_json()["value"]
-        set_config(key, value)
-        return {"success": True}
-
     @app.route("/admin/inlineTranslation")
     @admins_only
     def inline_config():

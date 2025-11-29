@@ -1,1 +1,0 @@
-import{$ as e}from"../jquery-BT3bhPE2.js";e(".toggle-button").click(function(){this.id=this.value;function i(a){e("#"+a.id).html(a.data),a.data==="enabled"?e("#"+a.id).removeClass("bg-danger").addClass("bg-success"):e("#"+a.id).removeClass("bg-success").addClass("bg-danger")}e.get(`/userchallenge/api/config/${this.value}`,function(a){i(a)})});

@@ -109,14 +109,19 @@ def load(app):
     @app.route("/admin/hintpointdelay")
     @admins_only
     def hintpoint_config():
-        standard = get_config("inlineTranslationStandard")
+        standard = get_config("hintpointdelay")
+
+        if standard:
+            standard = "enabled"
+        else:
+            standard = "disabled"
+
         configs = [
             ConfigPanel(
-                "Standard Language",
-                "Set the standard language.",
+                "Delayed Hints",
+                "Toggles delayed hints, making it so hint cost is subtracted from challenge value instead of user.",
                 standard,
-                "inlineTranslationStandard",
-                SELECT_LANGUAGE_LIST,
+                "hintpointdelay"
             )
         ]
         return render_template("hintconfig.html", configs=configs)

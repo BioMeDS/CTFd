@@ -128,18 +128,6 @@ def load(app):
             db.session.rollback()
             checks = []
 
-    @app.route("/admin/emailNotifs/config/<configType>", methods=["GET", "POST"])
-    @admins_only
-    def toggle_notifs(configType):
-        key = configType
-
-        newstate = toggle_config(key)
-        data = "disabled"
-        if newstate:
-            data = "enabled"
-
-        return {"success": True, "data": data, "id": key}
-
     @app.route("/admin/NotificationForwarding")
     @admins_only
     def notif_config():
@@ -414,5 +402,5 @@ def load(app):
             q=q,
             field=field,
         ))
-
+    
     run_after_route(app, "admin.users_listing", modify_users)

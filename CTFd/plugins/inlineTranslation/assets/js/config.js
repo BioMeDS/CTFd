@@ -9,13 +9,13 @@ $(".toggle-button").click(function() {
         }else{
             $("#"+res.id).removeClass("bg-success").addClass("bg-danger")
         }}
-    $.get(`/admin/inlineTranslation/config/${this.id}`,function(res){
+    $.get(`/admin/LuaUtils/config/${this.id}`,function(res){
         foo(res)
     })
   });
 
 $("select").on('change',function(){
-    CTFd.fetch(`/admin/inlineTranslation/config/${this.id}`, {
+    CTFd.fetch(`/admin/LuaUtils/config/${this.id}`, {
       method: "POST",
       credentials: "same-origin",
       headers: {

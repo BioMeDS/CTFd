@@ -9,7 +9,7 @@ $(".toggle-button").click(function() {
         }else{
             $("#"+res.id).removeClass("bg-success").addClass("bg-danger")
         }}
-        $.get(`/userchallenge/api/config/${this.value}`,function(res){
+        $.get(`/admin/LuaUtils/config/${this.value}`,function(res){
             foo(res)
         })
   });
