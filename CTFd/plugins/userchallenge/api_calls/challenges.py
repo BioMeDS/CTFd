@@ -1,7 +1,4 @@
 
-from flask import abort, render_template, request, url_for
-from sqlalchemy.sql import and_
-
 from CTFd.cache import clear_challenges, clear_standings
 from CTFd.constants import config
 from CTFd.models import Challenges, Hints, HintUnlocks, Solves, Submissions, db
@@ -30,6 +27,8 @@ from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.security.signing import serialize
 from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
+from flask import abort, render_template, request, url_for
+from sqlalchemy.sql import and_
 
 
 def load(app):

@@ -180,7 +180,7 @@ def load(app):
 
     @admins_only
     def notification_post(response):
-        if response[0].get_json():
+        if request.method == "GET" and response[0].get_json():
             email = get_config("sendEmailNotif")
             if email:
                 send_mail_all_users(response[0].get_json()["data"])
@@ -192,7 +192,7 @@ def load(app):
     # put every new user in table
     @check_registration_visibility
     @ratelimit(method="POST", limit=10, interval=5)
-    def notif_register():
+    def notif_register(res):
         # add user checkmark for email notifications
         if get_current_user():
             check = UserNotifs(get_current_user(), False)

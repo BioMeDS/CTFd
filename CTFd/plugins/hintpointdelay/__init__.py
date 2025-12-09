@@ -33,14 +33,14 @@ class DelayedHints(db.Model):
         self.hint = hint.id
         self.challenge = hint.challenge_id
 
-def get_modified_challenge_points(challenge):
+def get_modified_challenge_points(challenge_id,challenge_value):
         user = get_current_user()
         hintids = DelayedHints.query.filter(
-                DelayedHints.challenge == challenge.id,
+                DelayedHints.challenge == challenge_id,
                 DelayedHints.user == user.id,
             ).all()
         
-        score = challenge.value
+        score = challenge_value
         if hintids:
             for hid in hintids:
                 hint = Hints.query.filter(
@@ -50,10 +50,10 @@ def get_modified_challenge_points(challenge):
         
         return score
     
-def apply_delayed_hints(challenge):
+def apply_delayed_hints(challenge_id):
     user = get_current_user()
     hintids = DelayedHints.query.filter(
-            DelayedHints.challenge == challenge.id,
+            DelayedHints.challenge == challenge_id,
             DelayedHints.user == user.id,
         ).all()
 
@@ -103,6 +103,7 @@ hintpoint = Blueprint(
 )
 
 def load(app):
+    
     app.db.create_all()
 
     #jinja globals 
@@ -115,7 +116,6 @@ def load(app):
     @admins_only
     def hintpoint_config():
         standard = get_config("hintpointdelay")
-
         if standard:
             standard = "enabled"
         else:
@@ -141,9 +141,11 @@ def load(app):
         user = get_current_user()
 
         Model = get_class_by_tablename(req["type"])
-        hint = Model.query.filter_by(id=req["target"]).first_or_404()
-
+        target = Model.query.filter_by(id=req["target"]).first_or_404()
+        
+        # replace costly hint with non cost hint
         if(req["type"] == "hints"):
+            hint = target
             name = hint.name
             description = hint.description
             category = hint.category
@@ -175,117 +177,20 @@ def load(app):
 
             db.session.commit()
             clear_standings()
-    
 
     run_after_route(app,'api.unlocks_unlock_list',modify_award)
 
-    @during_ctf_time_only
-    @require_verified_emails
-    @authed_only
-    def post(self):
-        req = request.get_json()
-        user = get_current_user()
+    def modify_challenge_correct(res):
+        response = res[0].get_json()
+        log('registrations',format="########################## {response}",
+            response= response['data']['status'] )
+        if (response['success'] and response['data']['status'] == 'correct'):
+            if not request.is_json:
+                request_data = request.form
+            else:
+                request_data = request.get_json()
 
-        target_type = req["type"]
+            challenge_id = request_data.get("challenge_id")
+            apply_delayed_hints(challenge_id)
 
-        req["user_id"] = user.id
-        req["team_id"] = user.team_id
-
-        Model = get_class_by_tablename(req["type"])
-        target = Model.query.filter_by(id=req["target"]).first_or_404()
-
-        if target_type == "hints":
-            # We should use the team's score if in teams mode
-            # user.account gives the appropriate account based on team mode
-            # Use get_score with admin to get the account's full score value
-            if target.cost > user.account.get_score(admin=True):
-                return (
-                    {
-                        "success": False,
-                        "errors": {
-                            "score": "You do not have enough points to unlock this hint"
-                        },
-                    },
-                    400,
-                )
-
-            schema = UnlockSchema()
-            response = schema.load(req, session=db.session)
-
-            if response.errors:
-                return {"success": False, "errors": response.errors}, 400
-
-            # Search for an existing unlock that matches the target and type
-            # And matches either the requesting user id or the requesting team id
-            existing = Unlocks.query.filter(
-                Unlocks.target == req["target"],
-                Unlocks.type == req["type"],
-                Unlocks.account_id == user.account_id,
-            ).first()
-            if existing:
-                return (
-                    {
-                        "success": False,
-                        "errors": {"target": "You've already unlocked this target"},
-                    },
-                    400,
-                )
-
-            db.session.add(response.data)
-
-            award_schema = AwardSchema()
-            award = {
-                "user_id": user.id,
-                "team_id": user.team_id,
-                "name": target.name,
-                "description": target.description,
-                "value": (-target.cost),
-                "category": target.category,
-            }
-
-            award = award_schema.load(award)
-            db.session.add(award.data)
-            db.session.commit()
-            clear_standings()
-
-            response = schema.dump(response.data)
-
-            return {"success": True, "data": response.data}
-        
-        elif target_type == "solutions":
-            schema = UnlockSchema()
-            response = schema.load(req, session=db.session)
-
-            if response.errors:
-                return {"success": False, "errors": response.errors}, 400
-
-            # Search for an existing unlock that matches the target and type
-            # And matches either the requesting user id or the requesting team id
-            existing = Unlocks.query.filter(
-                Unlocks.target == req["target"],
-                Unlocks.type == req["type"],
-                Unlocks.account_id == user.account_id,
-            ).first()
-            if existing:
-                return (
-                    {
-                        "success": False,
-                        "errors": {"target": "You've already unlocked this target"},
-                    },
-                    400,
-                )
-
-            db.session.add(response.data)
-            db.session.commit()
-
-            response = schema.dump(response.data)
-
-            return {"success": True, "data": response.data}
-        else:
-            return (
-                {
-                    "success": False,
-                    "errors": {"type": "Unknown target type"},
-                },
-                400,
-            )
+    run_after_route(app,'api.challenges_challenge_attempt',modify_challenge_correct)

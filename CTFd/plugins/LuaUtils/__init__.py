@@ -111,8 +111,9 @@ def run_as_decorator(function,*last):
                 new = function([ret] + list(*args), **kwargs)
                 return new if new else ret
             else:
-                function(*args, **kwargs)
-                return f(*args, **kwargs)
+                new = function(*args, **kwargs)
+                ret = f(*args, **kwargs)
+                return new if new else ret
         return is_owned_wrapper
     return decorator
 

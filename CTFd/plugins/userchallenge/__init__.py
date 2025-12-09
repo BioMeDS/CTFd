@@ -108,6 +108,8 @@ def load(app):
     # add creation date and user to listing
     @admins_only
     def challenges_listing(res):
+
+        
         q = request.args.get("q")
         field = request.args.get("field")
         filters = []
@@ -140,16 +142,17 @@ def load(app):
                 )
             )
 
-        return merge_text(
-            res[0],
-            render_template(
-                "adminChallenges.html",
-                challenges=challenges,
-                total=total,
-                q=q,
-                field=field,
-            ),
-        )
+        if res[0]:
+            return merge_text(
+                res[0],
+                render_template(
+                    "adminChallenges.html",
+                    challenges=challenges,
+                    total=total,
+                    q=q,
+                    field=field,
+                ),
+            )
 
     run_after_route(app, "admin.challenges_listing", challenges_listing)
 
