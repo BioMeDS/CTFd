@@ -27,6 +27,7 @@ class DelayedHints(db.Model):
     hint = db.Column(
         db.Integer, db.ForeignKey("hints.id", ondelete="CASCADE", onupdate="CASCADE")
     )
+    challenge = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete = "CASCADE", onupdate="CASCADE"))
 
     def __init__(self, user, hint):
         self.user = user.id
@@ -52,15 +53,18 @@ def get_modified_challenge_points(challenge_id,challenge_value):
     
 def apply_delayed_hints(challenge_id):
     user = get_current_user()
-    hintids = DelayedHints.query.filter(
-            DelayedHints.challenge == challenge_id,
-            DelayedHints.user == user.id,
-        ).all()
-
+    try:
+        hintids = DelayedHints.query.filter(
+                DelayedHints.challenge == challenge_id,
+                DelayedHints.user == user.id,
+            ).all()
+    except():
+        hintids = False
     if hintids:
         for hid in hintids:
+            
             hint = Hints.query.filter(
-                        Hints.id== hid,
+                        Hints.id == hid.id,
                     ).first()
             if hint:
                 name = hint.name
@@ -89,7 +93,6 @@ def apply_delayed_hints(challenge_id):
                         db.session.add(new_award.data)
                         break
                 
-                db.session.delete(hint)
                 db.session.commit()
                 db.session.close()
                 clear_standings()        
@@ -182,8 +185,6 @@ def load(app):
 
     def modify_challenge_correct(res):
         response = res[0].get_json()
-        log('registrations',format="########################## {response}",
-            response= response['data']['status'] )
         if (response['success'] and response['data']['status'] == 'correct'):
             if not request.is_json:
                 request_data = request.form
