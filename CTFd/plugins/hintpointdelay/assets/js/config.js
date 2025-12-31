@@ -25,5 +25,5 @@ $("select").on('change',function(){
       body: JSON.stringify({
         value: this.value
       }),
-    })  
+    })
 });

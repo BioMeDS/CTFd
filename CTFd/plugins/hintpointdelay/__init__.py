@@ -1,9 +1,11 @@
 
+from pathlib import Path
+
 from flask import Blueprint, render_template, request
 
 from CTFd.cache import clear_standings
 from CTFd.constants.languages import SELECT_LANGUAGE_LIST
-from CTFd.models import Awards, Hints, Unlocks, db, get_class_by_tablename
+from CTFd.models import Awards, Challenges, Hints, Unlocks, db, get_class_by_tablename
 from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset, run_after_route
 from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.unlocks import UnlockSchema
@@ -15,8 +17,14 @@ from CTFd.utils.decorators import (
     require_verified_emails,
 )
 from CTFd.utils.logging import log
+from CTFd.utils.plugins import override_template
 from CTFd.utils.user import get_current_user
 
+
+def registerTemplate(old_path, new_path):
+    dir_path = Path(__file__).parent.resolve()
+    template_path = dir_path / "templates" / new_path
+    override_template(old_path, open(template_path).read())
 
 class DelayedHints(db.Model):
     __tablename__ = "delayedhints"
@@ -36,16 +44,19 @@ class DelayedHints(db.Model):
 
 def get_modified_challenge_points(challenge_id,challenge_value):
         user = get_current_user()
-        hintids = DelayedHints.query.filter(
-                DelayedHints.challenge == challenge_id,
-                DelayedHints.user == user.id,
-            ).all()
+        try:
+            hintids = DelayedHints.query.filter(
+                    DelayedHints.challenge == challenge_id,
+                    DelayedHints.user == user.id,
+                ).all()
+        except():
+            hintids = False
         
         score = challenge_value
         if hintids:
             for hid in hintids:
                 hint = Hints.query.filter(
-                            Hints.id== hid,
+                            Hints.id== hid.hint,
                         ).first()
                 score -= hint.cost
         
@@ -64,7 +75,7 @@ def apply_delayed_hints(challenge_id):
         for hid in hintids:
             
             hint = Hints.query.filter(
-                        Hints.id == hid.id,
+                        Hints.id == hid.hint,
                     ).first()
             if hint:
                 name = hint.name
@@ -114,6 +125,9 @@ def load(app):
     app.jinja_env.globals.update(hintpointassets=_LuaAsset("hintpointdelay"))
     app.register_blueprint(hintpoint, url_prefix="/hintpointdelay")
 
+    registerTemplate("challenge.html","hintchallenge.html")
+    registerTemplate("challenges.html","hintchallenges.html")
+
     #config page    
     @app.route("/admin/hintpointdelay")
     @admins_only
@@ -133,6 +147,17 @@ def load(app):
             )
         ]
         return render_template("hintconfig.html", configs=configs)
+
+    @app.route("/api/hintpoint/challengevalue/<challenge_id>",methods=['GET'])
+    def getValues(challenge_id):
+        try:
+            challenge = Challenges.query.filter(
+                    Challenges.id == challenge_id
+                ).first()
+        except():
+            return {"success": False, "status":500}
+        res = get_modified_challenge_points(challenge_id,challenge.value)
+        return {"success": True, "data":res}
 
     #modified award unlock
     def modify_award(res):
