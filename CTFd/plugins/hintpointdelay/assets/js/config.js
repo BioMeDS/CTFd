@@ -1,7 +1,7 @@
 import $ from "jquery";
 import CTFd from "./index";
 
-$(".toggle-button").click(function() {
+$(".toggle-button").on('click',function() {
     function foo (res) {
         $("#"+res.id).html(res.data)
         if(res.data === "enabled"){

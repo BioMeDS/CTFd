@@ -4,17 +4,12 @@ from pathlib import Path
 from flask import Blueprint, render_template, request
 
 from CTFd.cache import clear_standings
-from CTFd.constants.languages import SELECT_LANGUAGE_LIST
-from CTFd.models import Awards, Challenges, Hints, Unlocks, db, get_class_by_tablename
+from CTFd.models import Challenges, Hints, db, get_class_by_tablename
 from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset, run_after_route
 from CTFd.schemas.awards import AwardSchema
-from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils import get_config
 from CTFd.utils.decorators import (
     admins_only,
-    authed_only,
-    during_ctf_time_only,
-    require_verified_emails,
 )
 from CTFd.utils.logging import log
 from CTFd.utils.plugins import override_template
@@ -149,7 +144,7 @@ def load(app):
         return render_template("hintconfig.html", configs=configs)
 
     @app.route("/api/hintpoint/challengevalue/<challenge_id>",methods=['GET'])
-    def getValues(challenge_id):
+    def get_hint_Values(challenge_id):
         try:
             challenge = Challenges.query.filter(
                     Challenges.id == challenge_id
@@ -205,6 +200,7 @@ def load(app):
 
             db.session.commit()
             clear_standings()
+
 
     run_after_route(app,'api.unlocks_unlock_list',modify_award)
 

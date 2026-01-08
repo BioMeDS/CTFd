@@ -44,7 +44,10 @@
             <div class="category-challenges d-flex flex-column">
               <div class="challenges-row row">
                 <template x-for="(c, idx) in getChallenges(category)" :key="c.id">
-                  <div class="col-sm-6 col-md-4 col-lg-3 my-3">
+                  <div class="col-sm-6 col-md-4 col-lg-3 my-3" 
+                      x-ref="challenges"
+                      x-data="Hintpoints"
+                      x-init="hintpointvalue(c.id)">
                     <button
                         class="challenge-button btn btn-dark w-100 h-100"
                         :class="[
@@ -55,8 +58,6 @@
                     >
 
                       <div class="challenge-inner my-3"
-                      x-data="Hintpoints"
-                      x-init="hintpointvalue(c.id)"
                       >
                         <p x-text="c.name"></p>
                         <span x-text="challengevalue"></span>

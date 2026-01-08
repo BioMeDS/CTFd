@@ -47,18 +47,17 @@
       </div>
 
       <div>
-        <div class="tab-content">
+        <div class="tab-content" x-data="Hintpoints" x-init="hintpointvalue(id)">
           <div role="tabpanel" class="tab-pane fade show active" id="challenge">
             <h2 class="challenge-name text-center pt-3">
               {{ challenge.name }}
             </h2>
-            <h3 class="challenge-value text-center">
-              {{ hintpointvalue(challenge.id,challenge.value) }}
+            <h3 class="challenge-value text-center" x-text="challengevalue">
             </h3>
 
 
             {% if tags %}
-              <div class="challenge-tags text-center pt-2 pb-3">
+              <div class="challenge-tags text-center pts-2 pb-3">
                 {% block tags %}
                   {% for tag in tags %}
                     <span class="challenge-tag badge bg-info">{{ tag }}</span>
@@ -116,7 +115,7 @@
                       <div>{{ hint.html | safe }}</div>
                     </details>
                     {% else %}
-                    <details @toggle="showHint(event)">
+                    <details @toggle="await showHint(event); hintpointvalue({{challenge.id}});>
                       {% if hint.title %}
                       <summary>{{ hint.title }} (Cost: {{ hint.cost }} point{{ hint.cost|pluralize }})</summary>
                       {% else %}
