@@ -86,7 +86,7 @@
             </small>
             {% endif %}
 
-            <span class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</span>
+            <span class="challenge-desc">{% block description %}{{ challenge.html | safe }}{% endblock %}</span>
 
             {% if challenge.connection_info %}
               <div class="mb-2">
@@ -115,7 +115,7 @@
                       <div>{{ hint.html | safe }}</div>
                     </details>
                     {% else %}
-                    <details @toggle="await showHint(event); hintpointvalue({{challenge.id}});>
+                    <details @toggle="showHint(event)">
                       {% if hint.title %}
                       <summary>{{ hint.title }} (Cost: {{ hint.cost }} point{{ hint.cost|pluralize }})</summary>
                       {% else %}
