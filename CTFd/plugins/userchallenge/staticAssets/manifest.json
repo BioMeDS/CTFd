@@ -1,6 +1,6 @@
 {
-  "_HintEditForm-C1IRW5DI.js": {
-    "file": "assets/HintEditForm-C1IRW5DI.js",
+  "_HintEditForm-CJA_wE-H.js": {
+    "file": "assets/HintEditForm-CJA_wE-H.js",
     "name": "HintEditForm",
     "imports": [
       "_jquery-DDmc7zOD.js",
@@ -14,13 +14,13 @@
     "file": "assets/HintEditForm-D18HLkQY.css",
     "src": "_HintEditForm-D18HLkQY.css"
   },
-  "_NextChallenge-CaVr43am.js": {
-    "file": "assets/NextChallenge-CaVr43am.js",
+  "_NextChallenge-BMiLVhhZ.js": {
+    "file": "assets/NextChallenge-BMiLVhhZ.js",
     "name": "NextChallenge",
     "imports": [
       "_jquery-DDmc7zOD.js",
       "assets/js/main.js",
-      "_HintEditForm-C1IRW5DI.js"
+      "_HintEditForm-CJA_wE-H.js"
     ],
     "css": [
       "assets/NextChallenge-CgL1HbyM.css"
@@ -39,19 +39,19 @@
     "name": "jquery"
   },
   "assets/js/adminChallenge.js": {
-    "file": "assets/js/adminChallenge-7055_SAK.js",
+    "file": "assets/js/adminChallenge-BKAW65cS.js",
     "name": "js/adminChallenge",
     "src": "assets/js/adminChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_HintEditForm-C1IRW5DI.js",
+      "_HintEditForm-CJA_wE-H.js",
       "_jquery-DDmc7zOD.js",
-      "_NextChallenge-CaVr43am.js"
+      "_NextChallenge-BMiLVhhZ.js"
     ]
   },
   "assets/js/adminChallenges.js": {
-    "file": "assets/js/adminChallenges-CanlZVFv.js",
+    "file": "assets/js/adminChallenges-B4g-OAcb.js",
     "name": "js/adminChallenges",
     "src": "assets/js/adminChallenges.js",
     "isEntry": true,
@@ -70,7 +70,7 @@
     ]
   },
   "assets/js/main.js": {
-    "file": "assets/js/main-CSCwBH5u.js",
+    "file": "assets/js/main-8Vylz6kc.js",
     "name": "js/main",
     "src": "assets/js/main.js",
     "isEntry": true,
@@ -79,25 +79,25 @@
     ]
   },
   "assets/js/userChallenge.js": {
-    "file": "assets/js/userChallenge-e0xDYLQZ.js",
+    "file": "assets/js/userChallenge-BuMIJllY.js",
     "name": "js/userChallenge",
     "src": "assets/js/userChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
       "_jquery-DDmc7zOD.js",
-      "_HintEditForm-C1IRW5DI.js",
-      "_NextChallenge-CaVr43am.js"
+      "_HintEditForm-CJA_wE-H.js",
+      "_NextChallenge-BMiLVhhZ.js"
     ]
   },
   "assets/js/userChallengeRead.js": {
-    "file": "assets/js/userChallengeRead-CyF3Ev_p.js",
+    "file": "assets/js/userChallengeRead-ZwzuUdu9.js",
     "name": "js/userChallengeRead",
     "src": "assets/js/userChallengeRead.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_HintEditForm-C1IRW5DI.js",
+      "_HintEditForm-CJA_wE-H.js",
       "_jquery-DDmc7zOD.js"
     ],
     "css": [

@@ -1,16 +1,16 @@
-import $ from "jquery";
 import dayjs from "dayjs";
+import $ from "jquery";
 import MarkdownIt from "markdown-it";
 
-import "./patch";
-import fetch from "./fetch";
-import config from "./config";
-import API from "./api";
-import ezq from "./ezq";
-import { htmlEntities, createHtmlNode } from "@ctfdio/ctfd-js/utils/html";
 import { getScript } from "@ctfdio/ctfd-js/utils/ajax";
+import { createHtmlNode, htmlEntities } from "@ctfdio/ctfd-js/utils/html";
+import API from "./api";
+import config from "./config";
+import ezq from "./ezq";
+import fetch from "./fetch";
+import "./patch";
 
-const api = new API("/");
+const api = new API("/userchallenge/api");
 const user = {};
 const _internal = {};
 const ui = {
@@ -32,7 +32,6 @@ const init = (data) => {
   config.urlRoot = data.urlRoot || config.urlRoot;
   config.csrfNonce = data.csrfNonce || config.csrfNonce;
   config.userMode = data.userMode || config.userMode;
-  api.domain = config.urlRoot + "./plugins/UserChallengeManagement/apiModding";
   user.id = data.userId;
 };
 const plugin = {
