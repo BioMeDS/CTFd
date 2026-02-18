@@ -121,6 +121,11 @@ class Challenges(db.Model):
     type = db.Column(db.String(80))
     state = db.Column(db.String(80), nullable=False, default="visible")
     logic = db.Column(db.String(80), nullable=False, default="any")
+    initial = db.Column(db.Integer, nullable=True)
+    minimum = db.Column(db.Integer, nullable=True)
+    decay = db.Column(db.Integer, nullable=True)
+    function = db.Column(db.String(32), default="static")
+
     requirements = db.Column(db.JSON)
 
     files = db.relationship("ChallengeFiles", backref="challenge")
@@ -959,6 +964,10 @@ class Partials(Submissions):
 
 class Discards(Submissions):
     __mapper_args__ = {"polymorphic_identity": "discard"}
+
+
+class Ratelimiteds(Submissions):
+    __mapper_args__ = {"polymorphic_identity": "ratelimited"}
 
 
 class Unlocks(db.Model):
