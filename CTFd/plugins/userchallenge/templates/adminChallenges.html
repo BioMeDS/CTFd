@@ -91,7 +91,6 @@
 						<tr data-href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">
 							<td class="d-block border-right text-center" data-checkbox>
 								<div class="form-check">
-									<input type="checkbox" class="form-check-input" value="{{ challenge.id }}" autocomplete="off" data-challenge-id="{{ challenge.id }}">&nbsp;
 								</div>
 							</td>
 							<td class="text-center">{{ challenge.id }}</td>
@@ -120,5 +119,4 @@
 {% endblock %}
 
 {% block entrypoint %}
-{{ Assets.js("assets/js/pages/challenges.js", theme="admin") }}
 {% endblock %}
