@@ -1,6 +1,8 @@
 
+from flask import abort, render_template, request, url_for
+from sqlalchemy.sql import and_
+
 from CTFd.cache import clear_challenges, clear_standings
-from CTFd.constants import config
 from CTFd.models import Challenges, Hints, HintUnlocks, Solves, Submissions, db
 from CTFd.plugins.challenges import get_chal_class
 from CTFd.plugins.LuaUtils import run_after_route, run_before_route
@@ -14,6 +16,7 @@ from CTFd.plugins.userchallenge.utils import (
 )
 from CTFd.schemas.challenges import ChallengeSchema
 from CTFd.schemas.tags import TagSchema
+from CTFd.utils import config
 from CTFd.utils.challenges import (
     get_solve_counts_for_challenges,
     get_solve_ids_for_user_id,
@@ -27,8 +30,6 @@ from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.security.signing import serialize
 from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
-from flask import abort, render_template, request, url_for
-from sqlalchemy.sql import and_
 
 
 def load(app):
@@ -96,7 +97,7 @@ def load(app):
                 requirements = challenge.requirements.get("prerequisites", [])
                 anonymize = challenge.requirements.get("anonymize")
                 prereqs = set(requirements).intersection(all_challenge_ids)
-                if user_solves >= prereqs or admin_view:
+                if user_solves >= prereqs or is_admin():
                     pass
                 else:
                     if anonymize:

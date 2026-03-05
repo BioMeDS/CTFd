@@ -1,21 +1,21 @@
-import "./main";
-import $ from "jquery";
-import "./compat/json";
-import "bootstrap/js/dist/tab";
-import CTFd from "./compat/CTFd";
 import { htmlEntities } from "@ctfdio/ctfd-js/utils/html";
-import { ezQuery, ezAlert, ezToast } from "./compat/ezq";
-import { default as helpers } from "./compat/helpers";
-import { bindMarkdownEditors } from "./styles";
+import "bootstrap/js/dist/tab";
+import $ from "jquery";
 import Vue from "vue";
+import CTFd from "./compat/CTFd";
+import { ezAlert, ezQuery, ezToast } from "./compat/ezq";
+import { default as helpers } from "./compat/helpers";
+import "./compat/json";
 import CommentBox from "./components/comments/CommentBox.vue";
-import FlagList from "./components/flags/FlagList.vue";
-import Requirements from "./components/requirements/Requirements.vue";
-import TopicsList from "./components/topics/TopicsList.vue";
-import TagsList from "./components/tags/TagsList.vue";
 import ChallengeFilesList from "./components/files/ChallengeFilesList.vue";
+import FlagList from "./components/flags/FlagList.vue";
 import HintsList from "./components/hints/HintsList.vue";
 import NextChallenge from "./components/next/NextChallenge.vue";
+import Requirements from "./components/requirements/Requirements.vue";
+import TagsList from "./components/tags/TagsList.vue";
+import TopicsList from "./components/topics/TopicsList.vue";
+import "./main";
+import { bindMarkdownEditors } from "./styles";
 
 function loadChalTemplate(challenge) {
   CTFd._internal.challenge = {};
@@ -251,6 +251,94 @@ $(() => {
   });
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
+  
+  $(".chal-function")
+    .change(function () {
+      const selectedFunction = $(this).val();
+      const initialFormGroup = $(".chal-initial").closest(".form-group");
+      const decayFormGroup = $(".chal-decay").closest(".form-group");
+      const minimumFormGroup = $(".chal-minimum").closest(".form-group");
+      const initialInput = $(".chal-initial");
+      const decayInput = $(".chal-decay");
+      const minimumInput = $(".chal-minimum");
+      const valueInput = $(".chal-value");
+
+      if (selectedFunction === "static") {
+        // Save current values to data attributes before clearing them
+        if (initialInput.val()) {
+          initialInput.data("saved-value", initialInput.val());
+        }
+        if (decayInput.val()) {
+          decayInput.data("saved-value", decayInput.val());
+        }
+        if (minimumInput.val()) {
+          minimumInput.data("saved-value", minimumInput.val());
+        }
+
+        // Clear the input values to prevent validation errors on hidden fields
+        initialInput.val("");
+        decayInput.val("");
+        minimumInput.val("");
+
+        // Hide initial, decay, and minimum form groups for static function
+        initialFormGroup.hide();
+        decayFormGroup.hide();
+        minimumFormGroup.hide();
+
+        // Remove name attributes so they won't be included in serializeJSON
+        initialInput.removeAttr("name").data("original-name", "initial");
+        decayInput.removeAttr("name").data("original-name", "decay");
+        minimumInput.removeAttr("name").data("original-name", "minimum");
+
+        // Remove required attribute for static function
+        initialInput.removeAttr("required");
+        decayInput.removeAttr("required");
+        minimumInput.removeAttr("required");
+
+        // Make value input enabled and required for static function
+        valueInput.prop("disabled", false).prop("required", true);
+      } else if (
+        selectedFunction === "linear" ||
+        selectedFunction === "logarithmic"
+      ) {
+        // Show initial, decay, and minimum form groups for linear and logarithmic functions
+        initialFormGroup.show();
+        decayFormGroup.show();
+        minimumFormGroup.show();
+
+        // Restore name attributes so they will be included in serializeJSON
+        initialInput.attr(
+          "name",
+          initialInput.data("original-name") || "initial",
+        );
+        decayInput.attr("name", decayInput.data("original-name") || "decay");
+        minimumInput.attr(
+          "name",
+          minimumInput.data("original-name") || "minimum",
+        );
+
+        // Restore saved values from data attributes
+        if (initialInput.data("saved-value")) {
+          initialInput.val(initialInput.data("saved-value"));
+        }
+        if (decayInput.data("saved-value")) {
+          decayInput.val(decayInput.data("saved-value"));
+        }
+        if (minimumInput.data("saved-value")) {
+          minimumInput.val(minimumInput.data("saved-value"));
+        }
+
+        // Add required attribute for dynamic functions
+        initialInput.prop("required", true);
+        decayInput.prop("required", true);
+        minimumInput.prop("required", true);
+
+        // Make value input disabled and not required for dynamic functions
+        valueInput.prop("disabled", true).prop("required", false);
+      }
+    })
+    .trigger("change"); // Trigger change event on page load to set initial state
+
 
   // Load FlagList component
   if (document.querySelector("#challenge-flags")) {
