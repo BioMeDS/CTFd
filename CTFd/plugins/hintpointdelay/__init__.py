@@ -8,9 +8,7 @@ from CTFd.models import Challenges, Hints, db, get_class_by_tablename
 from CTFd.plugins.LuaUtils import ConfigPanel, _LuaAsset, run_after_route
 from CTFd.schemas.awards import AwardSchema
 from CTFd.utils import get_config
-from CTFd.utils.decorators import (
-    admins_only,
-)
+from CTFd.utils.decorators import admins_only
 from CTFd.utils.logging import log
 from CTFd.utils.plugins import override_template
 from CTFd.utils.user import get_current_user
@@ -103,6 +101,13 @@ def apply_delayed_hints(challenge_id):
                 db.session.close()
                 clear_standings()        
 
+def isSolved(challenge_id):
+    user = get_current_user()
+    solved = user.solves
+    for solve in solved:
+        if solve.challenge_id == challenge_id:
+            return True
+    return False
 
 hintpoint = Blueprint(
     "hintpointdelay",
@@ -166,8 +171,9 @@ def load(app):
         Model = get_class_by_tablename(req["type"])
         target = Model.query.filter_by(id=req["target"]).first_or_404()
         
-        # replace costly hint with non cost hint
-        if(req["type"] == "hints"):
+        # replace costly hint with non cost hint if not solved
+
+        if(req["type"] == "hints" and not isSolved(target.challenge_id)):
             hint = target
             name = hint.name
             description = hint.description

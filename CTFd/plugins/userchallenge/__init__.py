@@ -275,7 +275,7 @@ def load(app):
     def getReqs(challenge_id):
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         return {"success": True, "data": challenge.requirements}
-
+    
     # Comments
     comments.load(app)
     # attempts

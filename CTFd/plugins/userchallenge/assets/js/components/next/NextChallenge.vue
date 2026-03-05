@@ -82,7 +82,7 @@ export default {
         });
     },
     loadChallenges: function () {
-      CTFd.fetch("/api/v1/challenges?view=admin", {
+      CTFd.fetch("/userchallenge/api/challenges/", {
         method: "GET",
         credentials: "same-origin",
         headers: {
