@@ -1,0 +1,4 @@
+{
+    "name": "LLM-Obfuscate",
+    "route": "/admin/llm-obfuscate"
+}

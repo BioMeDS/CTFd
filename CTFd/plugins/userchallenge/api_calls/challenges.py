@@ -321,8 +321,10 @@ def load(app):
             attempts=attempts,
             challenge=chal,
         )
-
+        
         db.session.close()
+
+
         return {"success": True, "data": response}
 
     @admins_only
@@ -373,4 +375,4 @@ def load(app):
         return render_template(
             "userPreview.html", content=content, challenge=challenge
         )
-    
+
