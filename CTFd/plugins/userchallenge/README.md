@@ -1,7 +1,5 @@
-# General Instructions
+# UserChallenge
 
-init.py contains all admin config and custom user challenge urls
-under `api_calls` you can find the custom api implementation
-under `assets/js` you can find all required javascript files. 
-the main files are `adminChallenge`, `adminChallenges`, `config`, `main` and `userChallenge`
+Adds new user functionality enabling custom user challenges with limited tools compared to admins. Includes creator tracking, change tracking, read only function, etc.
 
+Requires [LuaUtils](https://github.com/CCTB-UW/LuaUtils) to work.
