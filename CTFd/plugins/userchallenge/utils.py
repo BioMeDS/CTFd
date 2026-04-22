@@ -1,12 +1,14 @@
 import datetime
 import functools
 from pathlib import Path
-from CTFd.utils.plugins import override_template
+
+from flask import abort, redirect, request, url_for
+
 from CTFd.models import Challenges, db
 from CTFd.utils import get_config
+from CTFd.utils.plugins import override_template
 from CTFd.utils.user import get_current_user, get_user_attrs, is_admin
 
-from flask import request, url_for, abort,redirect
 
 class UserChallenges(db.Model):
     __tablename__ = "UserChallenges"
@@ -21,17 +23,24 @@ class UserChallenges(db.Model):
         self.challenge = challenge
         self.date = date
 
-class UserChallenge:
-    def __init__(self,id,name,category,author,value,type,state,creation,lchange):
-        self.id = id
-        self.name = name
-        self.category = category
+class UserChallenge(Challenges):
+    
+    def __init__(self, author,creation,lchange, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.author = author
-        self.value = value
-        self.type = type
-        self.state = state
         self.creation = creation
         self.lastChanged = lchange
+        
+def Challenge_to_userChallenge(challenge,author,creation,lchange):
+
+    userchal = UserChallenge(author,creation,lchange)
+    attribute_names = dir(challenge)        
+    for attribute_name in attribute_names:
+        if not attribute_name.startswith('__'):
+            attribute_value = getattr(challenge, attribute_name)
+            setattr(userchal, attribute_name, attribute_value)
+
+    return userchal
 
 def add_User_Link(challenge_id):
     userchallenge = UserChallenges(get_current_user().id,challenge_id,datetime.datetime.utcnow())

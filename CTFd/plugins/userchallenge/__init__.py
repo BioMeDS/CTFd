@@ -24,6 +24,7 @@ from CTFd.plugins.userchallenge.utils import *
 from CTFd.utils import config
 from CTFd.utils.decorators import admins_only, authed_only
 from CTFd.utils.helpers import get_errors, get_infos
+from CTFd.utils.logging import log
 
 userChallenge = Blueprint(
     "userchallenge", __name__, template_folder="templates", static_folder="staticAssets"
@@ -125,20 +126,11 @@ def load(app):
             author = getUserForChallenge(n.id)
             date = getCreationDate(n.id)
             lchange = getLastChanged(n.id)
-            challenges.append(
-                UserChallenge(
-                    n.id,
-                    n.name,
-                    n.category,
-                    author,
-                    n.value,
-                    n.type,
-                    n.state,
-                    date,
-                    lchange=lchange,
-                )
-            )
-
+            setattr(n,'author',author)
+            setattr(n,'creation',date)
+            setattr(n,'lastChanged',lchange)
+            challenges.append(n)
+            
         if res[0]:
             return merge_text(
                 res[0],
