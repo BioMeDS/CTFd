@@ -1,11 +1,14 @@
 import difflib
 import functools
+import json
 import os
 import re
 
 from flask import current_app, request, url_for
+from flask_babel import gettext, ngettext
 
 from CTFd.cache import cache
+from CTFd.constants.languages import Languages
 from CTFd.utils import _get_asset_json, get_asset_json, get_config, set_config
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers import markup
@@ -13,6 +16,15 @@ from CTFd.utils.helpers import markup
 
 def load(app):
     cache.delete_memoized(_get_asset_json)
+    
+    # Auto-register translations from all plugins
+    plugins_dir = os.path.join(current_app.root_path, "plugins")
+    for plugin_name in os.listdir(plugins_dir):
+        plugin_dir = os.path.join(plugins_dir, plugin_name)
+        if os.path.isdir(plugin_dir):
+            translations_file = os.path.join(plugin_dir, 'translations.json')
+            if os.path.exists(translations_file):
+                register_translations(app, plugin_name, plugin_dir)
 
     @app.route("/admin/LuaUtils/config/<configType>", methods=["GET"])
     @admins_only
@@ -32,7 +44,6 @@ def load(app):
         value = request.get_json()["value"]
         set_config(key, value)
         return {"success": True}
-
 
     return
 
@@ -166,3 +177,80 @@ def insert_in_element(text:str, code:str, element_class:str) -> str:
 
     # 4. Reconstruct the full document
     return text[:container_match.start()] + prefix + new_inner_content + suffix + text[container_match.end():]
+
+
+def load_plugin_translations(plugin_dir):
+    """Load translations from a plugin's translations.json"""
+    translations_path = os.path.join(plugin_dir, 'translations.json')
+    try:
+        with open(translations_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+def register_translations(app, plugin_name, plugin_dir):
+    """General-purpose method to integrate plugin translations into Jinja.
+    
+    Args:
+        app: Flask application
+        plugin_name: Plugin name (e.g., 'LuaUtils', 'CustomPlugin')
+        plugin_dir: Absolute path to plugin directory
+    
+    Usage:
+        from CTFd.plugins.LuaUtils import register_translations
+        register_translations(app, 'MyPlugin', os.path.dirname(__file__))
+    """
+    from flask_babel import get_locale
+    from flask_babel import gettext as babel_gettext
+    from flask_babel import ngettext as babel_ngettext
+    
+    translations = load_plugin_translations(plugin_dir)
+    if not translations:
+        return
+    
+    # Store translations in config for database persistence
+    for lang, terms in translations.items():
+        for term, translation in terms.items():
+            key = f"{plugin_name.lower()}_translation_{lang}_{term}"
+            set_config(key, translation)
+    
+    # Wrap Flask-Babel's gettext functions to check plugin translations first
+    if not hasattr(app, '_luautils_gettext_wrapped'):
+        def wrapped_gettext(s):
+            """Check plugin translations first, then fall back to Flask-Babel."""
+            for check_plugin in getattr(app, '_registered_plugins', []):
+                try:
+                    lang = str(get_locale())
+                    config_key = f"{check_plugin.lower()}_translation_{lang}_{s}"
+                    translation = get_config(config_key)
+                    if translation:
+                        return translation
+                except Exception:
+                    pass
+            # Fall back to Flask-Babel's default
+            return babel_gettext(s)
+        
+        def wrapped_ngettext(s, p, n):
+            """Check plugin translations for plurals, then fall back to Flask-Babel."""
+            msg = s if n == 1 else p
+            for check_plugin in getattr(app, '_registered_plugins', []):
+                try:
+                    lang = str(get_locale())
+                    config_key = f"{check_plugin.lower()}_translation_{lang}_{msg}"
+                    translation = get_config(config_key)
+                    if translation:
+                        return translation
+                except Exception:
+                    pass
+            # Fall back to Flask-Babel's default
+            return babel_ngettext(s, p, n)
+        
+        # Install our wrapped callables
+        app.jinja_env.install_gettext_callables(wrapped_gettext, wrapped_ngettext, newstyle=True)
+        app._luautils_gettext_wrapped = True
+    
+    # Track registered plugins
+    if not hasattr(app, '_registered_plugins'):
+        app._registered_plugins = []
+    if plugin_name not in app._registered_plugins:
+        app._registered_plugins.append(plugin_name)

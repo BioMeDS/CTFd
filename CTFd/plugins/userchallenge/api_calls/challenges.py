@@ -28,6 +28,7 @@ from CTFd.utils.config.visibility import (
 )
 from CTFd.utils.dates import ctf_ended
 from CTFd.utils.decorators import admins_only
+from CTFd.utils.logging import log
 from CTFd.utils.security.signing import serialize
 from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
 
@@ -327,7 +328,7 @@ def load(app):
 
         return {"success": True, "data": response}
 
-    @admins_only
+
     @ReadOnly
     def delete_userchallenge(challenge_id):
         if request.method == "DELETE":
@@ -339,6 +340,20 @@ def load(app):
                 db.session.commit()
 
     #run_after_route(app,'api.challenges_challenge',delete_userchallenge)
+
+
+    @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['DELETE'])
+    @userChallenge_allowed
+    @ReadOnly
+    def delete_challenge(challenge_id):
+        delete_userchallenge(challenge_id)
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        chal_class = get_chal_class(challenge.type)
+        chal_class.delete(challenge)
+
+        clear_standings()
+        clear_challenges()
+        return {"success": True}
 
     @app.route('/userchallenge/challenges/preview/<challenge_id>')
     @userChallenge_allowed

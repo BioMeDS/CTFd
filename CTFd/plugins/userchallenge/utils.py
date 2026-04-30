@@ -22,14 +22,6 @@ class UserChallenges(db.Model):
         self.user = user
         self.challenge = challenge
         self.date = date
-
-class UserChallenge(Challenges):
-    
-    def __init__(self, author,creation,lchange, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.author = author
-        self.creation = creation
-        self.lastChanged = lchange
         
 def Challenge_to_userChallenge(challenge,author,creation,lchange):
 
@@ -152,7 +144,7 @@ def showLink():
 
 def ReadOnly(f):
     """
-    Decorator that requires the accessed challenge to be registered under the user's name
+    Decorator that prevents the user from making changes if the read only setting is enabled, but allows admins to bypass this restriction
     :param f:
     :return:
     """

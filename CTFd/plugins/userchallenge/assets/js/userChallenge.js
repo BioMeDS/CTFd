@@ -165,7 +165,7 @@ $(() => {
           })
           .then(function (response) {
             if (response.success) {
-              window.location = CTFd.config.urlRoot + "/admin/challenges";
+              window.location = CTFd.config.urlRoot + "/userchallenge/challenges";
             }
           });
       },
