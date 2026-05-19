@@ -20,11 +20,22 @@ from CTFd.plugins.userchallenge.api_calls import (
     tags,
     topics,
 )
-from CTFd.plugins.userchallenge.utils import *
+from CTFd.plugins.userchallenge.utils import (
+    UserChallenges,
+    getAllUserChallenges,
+    getCreationDate,
+    getLastChanged,
+    getUserForChallenge,
+    isReadOnly,
+    owned_by_user,
+    showLink,
+    userChallenge_allowed,
+)
 from CTFd.utils import config
+from CTFd.utils.config import get_config
 from CTFd.utils.decorators import admins_only, authed_only
 from CTFd.utils.helpers import get_errors, get_infos
-from CTFd.utils.logging import log
+from CTFd.utils.user import get_current_user
 
 userChallenge = Blueprint(
     "userchallenge", __name__, template_folder="templates", static_folder="staticAssets"
@@ -222,7 +233,7 @@ def load(app):
         )
 
         if isReadOnly():
-            if type(update_j2) == str:
+            if isinstance(update_j2, str):
                 update_j2 = update_j2.replace(
                     '	<div>\n\t\t<button class="btn btn-success btn-outlined float-right" type="submit">\n\t\t\tUpdate\n\t\t</button>\n\t</div>',
                     "",

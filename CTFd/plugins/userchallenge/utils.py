@@ -1,12 +1,10 @@
 import datetime
 import functools
-from pathlib import Path
 
 from flask import abort, redirect, request, url_for
 
 from CTFd.models import Challenges, db
 from CTFd.utils import get_config
-from CTFd.utils.plugins import override_template
 from CTFd.utils.user import get_current_user, get_user_attrs, is_admin
 
 

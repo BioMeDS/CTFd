@@ -5,7 +5,6 @@ from sqlalchemy.sql import and_
 from CTFd.cache import clear_challenges, clear_standings
 from CTFd.models import Challenges, Hints, HintUnlocks, Solves, Submissions, db
 from CTFd.plugins.challenges import get_chal_class
-from CTFd.plugins.LuaUtils import run_after_route, run_before_route
 from CTFd.plugins.userchallenge.utils import (
     ReadOnly,
     UserChallenges,
@@ -338,8 +337,6 @@ def load(app):
             if userchal:
                 query.delete()
                 db.session.commit()
-
-    #run_after_route(app,'api.challenges_challenge',delete_userchallenge)
 
 
     @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['DELETE'])

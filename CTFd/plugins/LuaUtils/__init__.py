@@ -5,10 +5,11 @@ import os
 import re
 
 from flask import current_app, request, url_for
-from flask_babel import gettext, ngettext
+from flask_babel import get_locale
+from flask_babel import gettext as babel_gettext
+from flask_babel import ngettext as babel_ngettext
 
 from CTFd.cache import cache
-from CTFd.constants.languages import Languages
 from CTFd.utils import _get_asset_json, get_asset_json, get_config, set_config
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers import markup
@@ -28,7 +29,7 @@ def load(app):
 
     @app.route("/admin/LuaUtils/config/<configType>", methods=["GET"])
     @admins_only
-    def toggle_inlines(configType):
+    def toggle_config_type(configType):
         key = configType
         newstate = toggle_config(key)
         data = "disabled"
@@ -39,7 +40,7 @@ def load(app):
 
     @app.route("/admin/LuaUtils/config/<configType>", methods=["POST"])
     @admins_only
-    def set_inlines(configType):
+    def set_config_type(configType):
         key = configType
         value = request.get_json()["value"]
         set_config(key, value)
@@ -141,6 +142,9 @@ def run_after_route(app,key,function):
 
 # https://stackoverflow.com/a/61107079
 def merge_text(text1:str, text2:str) -> str:
+    """
+    Merge two strings by comparing lines and merging text 2 into 1.
+    """
     return "\n".join(
         line[2:] for line in difflib.Differ().compare(
             text1.split("\n"),
@@ -149,7 +153,10 @@ def merge_text(text1:str, text2:str) -> str:
 
 
 def insert_in_element(text:str, code:str, element_class:str) -> str:
-    # 1. Isolate the specific container by class
+    """
+    Insert code into the middle of every <p> tag within a span with provided class.
+    """
+    # define regex to find span with provided class and separates into prefix, inner content, and suffix
     container_pattern = r'(<span[^>]*class="' + re.escape(element_class) + r'"[^>]*>)(.*?)(</span>)'
     container_match = re.search(container_pattern, text, re.DOTALL | re.IGNORECASE)
     
@@ -158,12 +165,11 @@ def insert_in_element(text:str, code:str, element_class:str) -> str:
 
     prefix, inner_content, suffix = container_match.groups()
 
-    # 2. Define the logic for individual paragraphs
     def modify_p(p_match):
         p_opener, p_inner, p_closer = p_match.groups()
         midpoint = len(p_inner) // 2
         
-        # Check if midpoint is inside an HTML tag (like <code> or <img>)
+        # if find opened < without > before midpoint, move midpoint to after next >
         if p_inner.rfind('<', 0, midpoint) > p_inner.rfind('>', 0, midpoint):
             tag_end = p_inner.find('>', midpoint)
             if tag_end != -1:
@@ -171,11 +177,9 @@ def insert_in_element(text:str, code:str, element_class:str) -> str:
         
         return f"{p_opener}{p_inner[:midpoint]}{code}{p_inner[midpoint:]}{p_closer}"
 
-    # 3. Apply the insertion to every <p> tag inside the isolated container
     p_pattern = r'(<p[^>]*>)(.*?)(</p>)'
     new_inner_content = re.sub(p_pattern, modify_p, inner_content, flags=re.DOTALL | re.IGNORECASE)
 
-    # 4. Reconstruct the full document
     return text[:container_match.start()] + prefix + new_inner_content + suffix + text[container_match.end():]
 
 
@@ -200,9 +204,6 @@ def register_translations(app, plugin_name, plugin_dir):
         from CTFd.plugins.LuaUtils import register_translations
         register_translations(app, 'MyPlugin', os.path.dirname(__file__))
     """
-    from flask_babel import get_locale
-    from flask_babel import gettext as babel_gettext
-    from flask_babel import ngettext as babel_ngettext
     
     translations = load_plugin_translations(plugin_dir)
     if not translations:
