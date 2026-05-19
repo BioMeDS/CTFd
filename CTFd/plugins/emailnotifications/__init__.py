@@ -7,6 +7,11 @@ from sqlalchemy.sql import not_
 from CTFd.cache import cache
 from CTFd.models import Challenges, Tracking, Users, UserTokens, db
 from CTFd.plugins.emailnotifications.forms import forms
+from CTFd.plugins.emailnotifications.utils import (
+    UserNotifs,
+    get_user_check,
+    send_mail_all_users,
+)
 from CTFd.plugins.LuaUtils import (
     ConfigPanel,
     _LuaAsset,
@@ -19,80 +24,13 @@ from CTFd.utils import get_config, set_config
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.decorators import admins_only, authed_only, ratelimit
 from CTFd.utils.decorators.visibility import check_registration_visibility
-from CTFd.utils.email import sendmail
 from CTFd.utils.helpers import get_errors, get_infos, markup
 from CTFd.utils.logging import log
 from CTFd.utils.modes import TEAMS_MODE
 from CTFd.utils.user import get_current_team, get_current_user
 
-
-class UserNotifs(db.Model):
-    __tablename__ = "UserNotifs"
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(
-        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE")
-    )
-    email = db.Column(
-        db.String(128),
-        db.ForeignKey("users.email", ondelete="CASCADE", onupdate="CASCADE"),
-        unique=True,
-    )
-    data = db.Column(db.Boolean, default=False)
-
-    def __init__(self, user, data):
-        self.user = user.id
-        self.email = user.email
-        self.data = data
-
-
 cache.memoize()
 
-
-def _get_all_users_checked():
-    # get all users who have checked email notifications
-    users = db.session.execute(
-        UserNotifs.__table__.select().where(UserNotifs.data == 1)
-    ).all()
-
-    return users
-
-
-def get_all_users_checked():
-    # do like get config
-    users = _get_all_users_checked()
-    usermails = []
-    for u in users:
-        usermails.append(u[2])
-    return usermails
-
-
-def send_mail_all_users(notif):
-    users = get_all_users_checked()
-    if get_config("emailPrivacyNotif"):
-        # send mail through inbuilt api for each user
-        for addr in users:
-            text = notif["content"]
-            title = notif["title"]
-            sendmail(addr, text, title)
-    else:
-        # send mail through inbuilt api to every user in addr. makes all adresses public
-        if len(users) > 1:
-            addr = ", ".join(users)
-        elif len(users) > 0:
-            addr = users[0]
-        else:
-            return
-
-        text = notif["content"]
-        title = notif["title"]
-
-        sendmail(addr, text, title)
-    return
-
-
-def get_user_check(user_id):
-    query = db.session.query(UserNotifs).filter(UserNotifs.user == user_id).first()
-    return "true" if query and query.data else "false"
 
 
 emailNotifs = Blueprint(
@@ -184,7 +122,6 @@ def load(app):
         if request.method == "POST" and response[0].get_json():
             email = get_config("sendEmailNotif")
             if email:
-                log('registrations',format="####################### {data}",data = response[0].get_json()['data'])
                 send_mail_all_users(response[0].get_json()["data"])
             elif email is None:
                 set_config("sendEmailNotif", "false")
