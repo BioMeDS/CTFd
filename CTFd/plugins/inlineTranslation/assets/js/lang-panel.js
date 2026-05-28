@@ -1,7 +1,7 @@
 
 
 // just a data structure holding id "lang"
-export class langPanel extends HTMLParagraphElement{
+export class langPanel extends HTMLElement{
 
   static observedAttributes = ["lang"];
 

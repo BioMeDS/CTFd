@@ -1,6 +1,6 @@
+import CTFd from "@ctfdio/ctfd-js";
 import Alpine from "alpinejs";
 import $ from "jquery";
-import CTFd from './index';
 import { langPanel } from './lang-panel';
 
 window.CTFd = CTFd;
