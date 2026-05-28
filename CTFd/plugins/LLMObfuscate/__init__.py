@@ -45,7 +45,7 @@ def load(app):
     def obfuscate_challenge_description(res,challenge_id):
         data = res[0].get_json()['data']
         if request.method == "GET":
-            modified = insert_in_element(data['view'],"<span style='font-size:0px; text-align: center; hidden'>"+injection_payload+"</span>", "challenge-desc")
+            modified = insert_in_element(data['view'],"<span style='font-size:0px; text-align: center; hidden'>"+get_config("LLMObfuscationPrompt")+"</span>", "challenge-desc")
             if modified:
                 data['view'] = modified
             
