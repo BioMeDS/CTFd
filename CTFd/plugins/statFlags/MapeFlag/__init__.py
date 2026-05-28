@@ -1,11 +1,12 @@
 from CTFd.plugins import register_plugin_assets_directory
-from CTFd.plugins.flags import BaseFlag,FlagException,FLAG_CLASSES
+from CTFd.plugins.flags import FLAG_CLASSES, BaseFlag, FlagException
 
-class CTFdMSEFlag(BaseFlag):
-    name = "mse"
+
+class CTFdMAPEFlag(BaseFlag):
+    name = "mape"
     templates = {
-        "create": "/plugins/MseFlag/assets/create.html",
-        "update": "/plugins/MseFlag/assets/edit.html",
+        "create": "/plugins/statFlags/MapeFlag/assets/create.html",
+        "update": "/plugins/statFlags/MapeFlag/assets/edit.html",
     }
 
     @staticmethod
@@ -19,15 +20,16 @@ class CTFdMSEFlag(BaseFlag):
             raise FlagException("Flag must be comma separated floats")
         if len(provided_np) != len(saved_np):
             raise FlagException(f"Incorrect number of values: provided {len(provided_np)}, expected {len(saved_np)}")
-        mse = 0
+        mape = 0
         for p,s in zip(provided_np, saved_np):
-            mse += (p-s)**2
-        mse /= len(provided_np)
-        return mse < float(data)
+            mape += abs(p-s)/s
+        mape /= len(provided_np)
+        mape *= 100
+        return mape < float(data)
+
 
 
 def load(app):
-    FLAG_CLASSES['mse'] = CTFdMSEFlag
-    register_plugin_assets_directory(app, base_path="/plugins/MseFlag/assets/")
+    FLAG_CLASSES['mape'] = CTFdMAPEFlag
+    register_plugin_assets_directory(app, base_path="/plugins/statFlags/MapeFlag/assets/")
     
-

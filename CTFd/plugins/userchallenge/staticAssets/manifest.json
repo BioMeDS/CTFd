@@ -1,30 +1,30 @@
 {
-  "_HintEditForm-D18HLkQY.css": {
-    "file": "assets/HintEditForm-D18HLkQY.css",
-    "src": "_HintEditForm-D18HLkQY.css"
-  },
-  "_HintEditForm-D64g2dI_.js": {
-    "file": "assets/HintEditForm-D64g2dI_.js",
+  "_HintEditForm-CMu6hqZ8.js": {
+    "file": "assets/HintEditForm-CMu6hqZ8.js",
     "name": "HintEditForm",
     "imports": [
-      "_jquery-DDmc7zOD.js",
+      "_jquery-D360CzOP.js",
       "assets/js/main.js"
     ],
     "css": [
       "assets/HintEditForm-D18HLkQY.css"
     ]
   },
+  "_HintEditForm-D18HLkQY.css": {
+    "file": "assets/HintEditForm-D18HLkQY.css",
+    "src": "_HintEditForm-D18HLkQY.css"
+  },
   "_TopicsList-Bb4uI3SZ.css": {
     "file": "assets/TopicsList-Bb4uI3SZ.css",
     "src": "_TopicsList-Bb4uI3SZ.css"
   },
-  "_TopicsList-C-R4MAZ9.js": {
-    "file": "assets/TopicsList-C-R4MAZ9.js",
+  "_TopicsList-DM_8YygZ.js": {
+    "file": "assets/TopicsList-DM_8YygZ.js",
     "name": "TopicsList",
     "imports": [
       "assets/js/main.js",
-      "_jquery-DDmc7zOD.js",
-      "_HintEditForm-D64g2dI_.js"
+      "_jquery-D360CzOP.js",
+      "_HintEditForm-CMu6hqZ8.js"
     ],
     "css": [
       "assets/TopicsList-Bb4uI3SZ.css"
@@ -34,74 +34,74 @@
     "file": "assets/echarts-l0sNRNKZ.js",
     "name": "echarts"
   },
-  "_jquery-DDmc7zOD.js": {
-    "file": "assets/jquery-DDmc7zOD.js",
+  "_jquery-D360CzOP.js": {
+    "file": "assets/jquery-D360CzOP.js",
     "name": "jquery"
   },
   "assets/js/adminChallenge.js": {
-    "file": "assets/js/adminChallenge-B_FIa3tY.js",
+    "file": "assets/js/adminChallenge-BpAVTivF.js",
     "name": "js/adminChallenge",
     "src": "assets/js/adminChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_HintEditForm-D64g2dI_.js",
-      "_jquery-DDmc7zOD.js",
-      "_TopicsList-C-R4MAZ9.js"
+      "_HintEditForm-CMu6hqZ8.js",
+      "_jquery-D360CzOP.js",
+      "_TopicsList-DM_8YygZ.js"
     ]
   },
   "assets/js/adminChallenges.js": {
-    "file": "assets/js/adminChallenges-Dg9ekq4W.js",
+    "file": "assets/js/adminChallenges-Fn49SB_G.js",
     "name": "js/adminChallenges",
     "src": "assets/js/adminChallenges.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_jquery-DDmc7zOD.js"
+      "_jquery-D360CzOP.js"
     ]
   },
   "assets/js/config.js": {
-    "file": "assets/js/config-BOJuSl8F.js",
+    "file": "assets/js/config-DnEswV0w.js",
     "name": "js/config",
     "src": "assets/js/config.js",
     "isEntry": true,
     "imports": [
-      "_jquery-DDmc7zOD.js"
+      "_jquery-D360CzOP.js"
     ]
   },
   "assets/js/main.js": {
-    "file": "assets/js/main-HQLI-75j.js",
+    "file": "assets/js/main-B8r6KPCa.js",
     "name": "js/main",
     "src": "assets/js/main.js",
     "isEntry": true,
     "imports": [
-      "_jquery-DDmc7zOD.js"
+      "_jquery-D360CzOP.js"
     ]
   },
   "assets/js/userChallenge.js": {
-    "file": "assets/js/userChallenge-lE6Oq4jt.js",
+    "file": "assets/js/userChallenge-BneihAsf.js",
     "name": "js/userChallenge",
     "src": "assets/js/userChallenge.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_HintEditForm-D64g2dI_.js",
-      "_jquery-DDmc7zOD.js",
-      "_TopicsList-C-R4MAZ9.js"
+      "_HintEditForm-CMu6hqZ8.js",
+      "_jquery-D360CzOP.js",
+      "_TopicsList-DM_8YygZ.js"
     ]
   },
   "assets/js/userChallengeRead.js": {
-    "file": "assets/js/userChallengeRead-CV7IGdaY.js",
+    "file": "assets/js/userChallengeRead-BJtwz6J7.js",
     "name": "js/userChallengeRead",
     "src": "assets/js/userChallengeRead.js",
     "isEntry": true,
     "imports": [
       "assets/js/main.js",
-      "_HintEditForm-D64g2dI_.js",
-      "_jquery-DDmc7zOD.js"
+      "_HintEditForm-CMu6hqZ8.js",
+      "_jquery-D360CzOP.js"
     ],
     "css": [
-      "assets/userChallengeRead-C9EKdmru.css"
+      "assets/userChallengeRead-vlYTJC7x.css"
     ]
   }
 }

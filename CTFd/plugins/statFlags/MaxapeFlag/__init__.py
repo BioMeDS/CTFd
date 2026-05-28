@@ -6,8 +6,8 @@ from CTFd.plugins.flags import FLAG_CLASSES, BaseFlag, FlagException
 class CTFdMAXAPEFlag(BaseFlag):
     name = "maxape"
     templates = {
-        "create": "/plugins/MaxapeFlag/assets/create.html",
-        "update": "/plugins/MaxapeFlag/assets/edit.html",
+        "create": "/plugins/statFlags/MaxapeFlag/assets/create.html",
+        "update": "/plugins/statFlags/MaxapeFlag/assets/edit.html",
     }
 
     @staticmethod
@@ -33,5 +33,5 @@ class CTFdMAXAPEFlag(BaseFlag):
 
 def load(app):
     FLAG_CLASSES['maxape'] = CTFdMAXAPEFlag
-    register_plugin_assets_directory(app, base_path="/plugins/MaxapeFlag/assets/")
+    register_plugin_assets_directory(app, base_path="/plugins/statFlags/MaxapeFlag/assets/")
     

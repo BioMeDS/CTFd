@@ -3,7 +3,7 @@ import "bootstrap/js/dist/tab";
 import $ from "jquery";
 import Vue from "vue";
 import CTFd from "./compat/CTFd";
-import { ezAlert, ezQuery, ezToast } from "./compat/ezq";
+import { ezAlert, ezQuery } from "./compat/ezq";
 import { default as helpers } from "./compat/helpers";
 import "./compat/json";
 import CommentBox from "./components/comments/CommentBox.vue";
@@ -201,41 +201,6 @@ $(() => {
             .then(function (response) {
               return response.json();
             })
-            .then(function (response) {
-              if (response.success) {
-                $(".challenge-state").text(response.data.state);
-                switch (response.data.state) {
-                  case "visible":
-                    $(".challenge-state")
-                      .removeClass("badge-danger")
-                      .addClass("badge-success");
-                    break;
-                  case "hidden":
-                    $(".challenge-state")
-                      .removeClass("badge-success")
-                      .addClass("badge-danger");
-                    break;
-                  default:
-                    break;
-                }
-                ezToast({
-                  title: "Success",
-                  body: "Your challenge has been updated!",
-                });
-              } else {
-                let body = "";
-                for (const k in response.errors) {
-                  body += response.errors[k].join("\n");
-                  body += "\n";
-                }
-
-                ezAlert({
-                  title: "Error",
-                  body: body,
-                  button: "OK",
-                });
-              }
-            });
         };
         // Check if the challenge doesn't have any flags before marking visible
         if (response.data.length === 0 && params.state === "visible") {
@@ -431,4 +396,5 @@ $(() => {
       loadChalTemplate(challenge);
     });
   });
+  $("#challengeValue-form").removeAttr("required").prop("disabled", true);
 });

@@ -179,11 +179,6 @@ def load(app):
     @app.route("/userchallenge/challenges", methods=["GET", "POST"])
     @userChallenge_allowed
     def view_challenges():
-        # TODO: add custom html extension of admin/challenges/challenges
-        #      change methods to check for rights and only display challenges by user
-        #      add custom html to change challenge editing to be available to users
-        #
-        #      add other plugin to modify challenge creation?
 
         q = request.args.get("q")
         field = request.args.get("field")
@@ -207,7 +202,6 @@ def load(app):
     @owned_by_user
     @userChallenge_allowed
     def updateChallenge(challenge_id):
-        # TODO: update logic to work with plugin
         challenges = dict(
             Challenges.query.with_entities(Challenges.id, Challenges.name).all()
         )
@@ -238,6 +232,19 @@ def load(app):
                     '	<div>\n\t\t<button class="btn btn-success btn-outlined float-right" type="submit">\n\t\t\tUpdate\n\t\t</button>\n\t</div>',
                     "",
                 )
+                update_j2 = update_j2.replace(
+                    'input type="number" class="form-control chal-value" name="value"',
+                    'input type="number" class="form-control chal-value" name="value" id="challengeValue-form"'
+                )
+                update_j2 = update_j2.replace(
+                    '<input',
+                    '<input disabled="true" ',
+                )
+                update_j2 = update_j2.replace(
+                    '<select',
+                    '<select disabled="true" ',
+                )                
+            
 
         update_script = url_for(
             "views.static_html",

@@ -20,6 +20,14 @@
           </option>
         </select>
       </div>
+      <div class="form-group">
+        <button
+          class="btn btn-success float-right"
+          :disabled="!updateAvailable"
+        >
+          Save
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -74,7 +82,7 @@ export default {
         });
     },
     loadChallenges: function () {
-      CTFd.fetch("/api/v1/challenges?view=admin", {
+      CTFd.fetch("/userchallenge/api/challenges/", {
         method: "GET",
         credentials: "same-origin",
         headers: {
