@@ -19,6 +19,7 @@ import { bindMarkdownEditors } from "./styles";
 
 function loadChalTemplate(challenge) {
   CTFd._internal.challenge = {};
+
   $.getScript(CTFd.config.urlRoot + challenge.scripts.view, function () {
     let template_data = challenge.create;
     $("#create-chal-entry-div").html(template_data);
@@ -42,10 +43,10 @@ function loadChalTemplate(challenge) {
           })
           .then(function (response) {
             if (response.success) {
-              $("#challenge-create-options #challenge_id").val(
-                response.data.id,
-              );
-              $("#challenge-create-options").modal();
+                setTimeout(function () {
+                  window.location =
+                  CTFd.config.urlRoot + "/userchallenge/challenges/" + response.data.id;
+                }, 700);
             } else {
               let body = "";
               for (const k in response.errors) {
