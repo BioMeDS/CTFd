@@ -1,7 +1,6 @@
-import $ from "jquery";
-import jQuery from "jquery";
-import { default as ezq } from "./ezq";
 import { htmlEntities } from "@ctfdio/ctfd-js/utils/html";
+import { default as $, default as jQuery } from "jquery";
+import { default as ezq } from "./ezq";
 import { colorHash } from "./styles";
 import { copyToClipboard } from "./ui";
 
@@ -28,7 +27,7 @@ const files = {
       title: "Upload Progress",
     });
     $.ajax({
-      url: "/userchallenge/api/files",
+      url: "/userchallenge/api/files/",
       data: formData,
       type: "POST",
       cache: false,

@@ -5,10 +5,13 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.constants import RawEnum
 from CTFd.models import ChallengeFiles as ChallengeFilesModel
 from CTFd.models import Files, db
-from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import (ReadOnly, UserFiles,
+                                              userChallenge_allowed)
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.logging import log
+from CTFd.utils.user import get_current_user
 
 
 def load(app):
@@ -130,7 +133,30 @@ def load(app):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Files, query=q, field=field)
 
-        files = Files.query.filter_by(**query_args).filter(*filters).all()
+        user = get_current_user()
+        user_file_ids = []
+        if user:
+            user_file_ids = [
+                file_id
+                for (file_id,) in UserFiles.query.with_entities(UserFiles.file_id)
+                .filter_by(user_id=user.id)
+                .all()
+            ]
+        log(
+            "registrations",
+            "UserFiles IDs for user {user_id}: {user_file_ids}",
+            user_id=user.id if user else None,
+            user_file_ids=user_file_ids,
+        )
+        if user:
+            files = (
+                Files.query.filter_by(**query_args)
+                .filter(*filters)
+                .filter(Files.id.in_(user_file_ids))
+                .all()
+            )
+        else:
+            files = []
         schema = FileSchema(many=True)
         response = schema.dump(files)
 
@@ -140,6 +166,7 @@ def load(app):
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/files/',methods=['POST'])
     @ReadOnly
+    @userChallenge_allowed
     @validate_args(
         {
             "challenge_id": (int, None),
@@ -169,6 +196,7 @@ def load(app):
             }, 400
 
         objs = []
+        user_file_objects = []
         for f in files:
             # uploads.upload_file(file=f, chalid=req.get('challenge'))
             try:
@@ -178,8 +206,14 @@ def load(app):
                     "success": False,
                     "errors": {"location": [str(e)]},
                 }, 400
+            user_file = UserFiles(get_current_user().id, obj.id)
+            db.session.add(user_file)
+            user_file_objects.append(user_file)
             objs.append(obj)
 
+        db.session.commit()
+        for user_file in user_file_objects:
+            log("registrations", "Saved UserFiles object: {user_file}", user_file=user_file)
         schema = FileSchema(many=True)
         response = schema.dump(objs)
 

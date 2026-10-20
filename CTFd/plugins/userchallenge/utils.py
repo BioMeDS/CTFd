@@ -20,18 +20,18 @@ class UserChallenges(db.Model):
         self.user = user
         self.challenge = challenge
         self.date = date
+
+
+class UserFiles(db.Model):
+    __tablename__ = "UserFiles"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    file_id = db.Column(db.Integer, db.ForeignKey("files.id", ondelete="CASCADE"))
+    
+    def __init__(self,user,file):
+            self.user_id = user
+            self.file_id = file
         
-def Challenge_to_userChallenge(challenge,author,creation,lchange):
-
-    userchal = UserChallenge(author,creation,lchange)
-    attribute_names = dir(challenge)        
-    for attribute_name in attribute_names:
-        if not attribute_name.startswith('__'):
-            attribute_value = getattr(challenge, attribute_name)
-            setattr(userchal, attribute_name, attribute_value)
-
-    return userchal
-
 def add_User_Link(challenge_id):
     userchallenge = UserChallenges(get_current_user().id,challenge_id,datetime.datetime.utcnow())
     db.session.add(userchallenge)

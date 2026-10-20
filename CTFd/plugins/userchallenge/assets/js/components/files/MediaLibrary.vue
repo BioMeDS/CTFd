@@ -136,7 +136,18 @@
                             <i class="fas fa-download"></i>
                           </button>
                         </div>
-                        
+                        <div class="col-md-3">
+                          <button
+                            @click="deleteSelectedFile"
+                            class="btn btn-danger w-100"
+                            id="media-delete"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            title="Delete file"
+                          >
+                            <i class="far fa-trash-alt"></i>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
