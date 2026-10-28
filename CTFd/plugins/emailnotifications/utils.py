@@ -1,8 +1,35 @@
 
 
+import re
+
 from CTFd.models import db
+from CTFd.plugins.emailnotifications.mails.mailgunmails import (
+    sendmail as sendmail_mailgun,
+)
+from CTFd.plugins.emailnotifications.mails.smtpmails import sendmail_hidden
+from flask import url_for
 from CTFd.utils import get_config
+from CTFd.utils.config import get_mail_provider
 from CTFd.utils.email import sendmail
+from CTFd.utils.logging import log
+
+
+IMAGE_SRC_PATTERN = re.compile(
+    r'(<img\b[^>]*?\bsrc=["\'])(/files/[^"\']+)(["\'])',
+    re.IGNORECASE,
+)
+
+
+def _add_static_image_sources(content):
+    def replace_image_source(match):
+        image_url = url_for(
+            "views.files",
+            path=match.group(2).removeprefix("/files/"),
+            _external=True,
+        )
+        return f"{match.group(1)}{image_url}{match.group(3)}"
+
+    return IMAGE_SRC_PATTERN.sub(replace_image_source, content)
 
 
 class UserNotifs(db.Model):
@@ -47,9 +74,9 @@ def send_mail_all_users(notif):
     if get_config("emailPrivacyNotif"):
         # send mail through inbuilt api for each user
         for addr in users:
-            text = notif["content"]
+            text = _add_static_image_sources(notif["content"])
             title = notif["title"]
-            sendmail(addr, text, title)
+            _send_notification_email(addr, text, title)
     else:
         # send mail through inbuilt api to every user in addr. makes all adresses public
         if len(users) > 1:
@@ -59,11 +86,39 @@ def send_mail_all_users(notif):
         else:
             return
 
-        text = notif["content"]
+        text = _add_static_image_sources(notif["content"])
         title = notif["title"]
 
-        sendmail(addr, text, title)
+        _send_notification_email(addr, text, title)
     return
+
+
+def _send_notification_email(addr, text, title):
+    provider = get_mail_provider()
+
+    if provider == "smtp":
+        log(
+            "registrations",
+            "################# sent as smtp",
+        )
+        result = sendmail_hidden(addr, text, title, html=True)
+        log(
+            "registrations",
+            "################# has done this: {result}",
+            result=result,
+        )
+    elif provider == "mailgun":
+        result = sendmail_mailgun(addr, text, title)
+    else:
+        result = sendmail(addr, text, title)
+        
+    if result[0]:    
+        log(
+            "registrations",
+            "[{date}] {ip} - email notification sent to {addr}: {title}",
+            addr=addr,
+            title=title,
+        )
 
 
 def get_user_check(user_id):

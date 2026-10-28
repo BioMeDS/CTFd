@@ -6,57 +6,78 @@ from socket import timeout
 from CTFd.utils import get_app_config, get_config
 
 
-def sendmail_hidden(addr, text, subject):
-        ctf_name = get_config("ctf_name")
-        mailfrom_addr = get_config("mailfrom_addr") or get_app_config("MAILFROM_ADDR")
-        mailfrom_addr = formataddr((ctf_name, mailfrom_addr))
+def sendmail_hidden(addr, text, subject, html=False):
+    ctf_name = get_config("ctf_name")
+    mailfrom_addr = get_config("mailfrom_addr") or get_app_config("MAILFROM_ADDR")
+    mailfrom_addr = formataddr((ctf_name, mailfrom_addr))
 
-        data = {
-            "host": get_config("mail_server") or get_app_config("MAIL_SERVER"),
-            "port": int(get_config("mail_port") or get_app_config("MAIL_PORT")),
-        }
-        username = get_config("mail_username") or get_app_config("MAIL_USERNAME")
-        password = get_config("mail_password") or get_app_config("MAIL_PASSWORD")
-        TLS = get_config("mail_tls") or get_app_config("MAIL_TLS")
-        SSL = get_config("mail_ssl") or get_app_config("MAIL_SSL")
-        auth = get_config("mail_useauth") or get_app_config("MAIL_USEAUTH")
+    data = {
+        "host": get_config("mail_server") or get_app_config("MAIL_SERVER"),
+        "port": int(get_config("mail_port") or get_app_config("MAIL_PORT")),
+    }
+    username = get_config("mail_username") or get_app_config("MAIL_USERNAME")
+    password = get_config("mail_password") or get_app_config("MAIL_PASSWORD")
+    tls = get_config("mail_tls") or get_app_config("MAIL_TLS")
+    ssl = get_config("mail_ssl") or get_app_config("MAIL_SSL")
+    auth = get_config("mail_useauth") or get_app_config("MAIL_USEAUTH")
 
-        if username:
-            data["username"] = username
-        if password:
-            data["password"] = password
-        if TLS:
-            data["TLS"] = TLS
-        if SSL:
-            data["SSL"] = SSL
-        if auth:
-            data["auth"] = auth
+    if username:
+        data["username"] = username
+    if password:
+        data["password"] = password
+    if tls:
+        data["TLS"] = tls
+    if ssl:
+        data["SSL"] = ssl
+    if auth:
+        data["auth"] = auth
 
-        try:
-            smtp = get_smtp(**data)
+    smtp = None
+    try:
+        smtp = get_smtp(**data)
 
-            msg = EmailMessage()
-            msg.set_content(text)
+        msg = EmailMessage()
+        msg.set_content(text)
+        if html:
+            msg.add_alternative(text, subtype="html")
 
-            msg["Subject"] = subject
-            msg["From"] = mailfrom_addr
-            msg["To"] = mailfrom_addr
-            msg["Bcc"] = addr
-            # Check whether we are using an admin-defined SMTP server
-            custom_smtp = bool(get_config("mail_server"))
+        msg["Subject"] = subject
+        msg["From"] = mailfrom_addr
+        msg["To"] = mailfrom_addr
+        msg["Bcc"] = addr
+        custom_smtp = bool(get_config("mail_server"))
 
-            # We should only consider the MAILSENDER_ADDR value on servers defined in config
-            if custom_smtp:
-                smtp.send_message(msg)
-            else:
-                mailsender_addr = get_app_config("MAILSENDER_ADDR")
-                smtp.send_message(msg, from_addr=mailsender_addr)
+        if custom_smtp:
+            smtp.send_message(msg)
+        else:
+            mailsender_addr = get_app_config("MAILSENDER_ADDR")
+            smtp.send_message(msg, from_addr=mailsender_addr)
 
-            smtp.quit()
-            return True, "Email sent"
-        except smtplib.SMTPException as e:
-            return False, str(e)
-        except timeout:
-            return False, "SMTP server connection timed out"
-        except Exception as e:
-            return False, str(e)
+        smtp.close()
+        return True, "Email sent"
+    except smtplib.SMTPException as error:
+        if smtp is not None:
+            smtp.close()
+        return False, str(error)
+    except timeout:
+        if smtp is not None:
+            smtp.close()
+        return False, "SMTP server connection timed out"
+    except Exception as error:
+        if smtp is not None:
+            smtp.close()
+        return False, str(error)
+
+
+def get_smtp(host, port, username=None, password=None, TLS=None, SSL=None, auth=None):
+    if SSL:
+        smtp = smtplib.SMTP_SSL(host, port, timeout=3)
+    else:
+        smtp = smtplib.SMTP(host, port, timeout=3)
+
+    if TLS:
+        smtp.starttls()
+
+    if auth:
+        smtp.login(username, password)
+    return smtp
