@@ -1,0 +1,95 @@
+<label>
+	My Text File Flag<br>
+	<small>Upload a file containing only text (i.e: .txt, .csv, ... )</small>
+</label>
+<div class="col-md-12 mt-3">
+	<div id="text-file-create-upload">
+	<div class="form-group">
+		<input
+		class="form-control-file"
+		id="text-file-create-input"
+		required=""
+		type="file"
+		/>
+	</div>
+	<div class="form-group">
+		<input
+		class="btn btn-success float-right"
+		id="text-file-create-submit"
+		type="button"
+		value="Upload"
+		/>
+	</div>
+	</div>
+</div>
+<div class="form-group">
+	<label for="text-file-create-content">Uploaded file URL</label>
+	<input
+		class="form-control"
+		id="text-file-create-content"
+		name="content"
+		readonly
+		required
+		type="text"
+	/>
+</div>
+<div class="form-group">
+	<label>Examples</label>
+	<table class="table small">
+		<thead>
+			<tr>
+				<th scope="col">Description</th>
+				<th scope="col">Flag</th>
+			</tr>
+		</thead>
+		<tr>
+			<td>Matches flag if file content is identical to the expected content</td>
+		</tr>
+	</table>
+</div>
+<input type="hidden" name="type" value="textFile">
+
+<script>
+	$("#text-file-create-submit").on("click", function () {
+		var formData = new FormData();
+		var file = $("#text-file-create-input")[0].files[0];
+		if (!file) {
+			alert("Select a file before uploading.");
+			return;
+		}
+		formData.append("file", file);
+		formData.append("nonce", CTFd.config.csrfNonce);
+		formData.append("type", "standard");
+
+		$.ajax({
+			url: CTFd.config.urlRoot + "/userchallenge/api/files",
+			data: formData,
+			type: "POST",
+			cache: false,
+			contentType: false,
+			processData: false,
+			success: function (response) {
+				if (
+					!response.success ||
+					!response.data ||
+					response.data.length !== 1 ||
+					!response.data[0].location
+				) {
+					alert("The file upload did not return a valid file URL.");
+					return;
+				}
+
+				$("#text-file-create-content").val(
+					CTFd.config.urlRoot + "/files/" + response.data[0].location
+				);
+			},
+			error: function (xhr) {
+				var message = "The file upload failed.";
+				if (xhr.responseJSON && xhr.responseJSON.errors) {
+					message += " " + JSON.stringify(xhr.responseJSON.errors);
+				}
+				alert(message);
+			},
+		});
+	});
+</script>
