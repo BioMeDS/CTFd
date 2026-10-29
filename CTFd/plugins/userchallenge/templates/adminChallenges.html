@@ -99,8 +99,24 @@
 							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
 							<td>{{ challenge.category }}</td>
 							<td>{{challenge.author}}</td>
-							
-							
+							<td class="text-center">{{ challenge.value }}</td>
+							<td class="text-center">{{ challenge.type }}</td>
+							<td class="text-center">
+								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
+								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
+							</td>
+							<td class="text-center">
+								{% if challenge.solution_id %}
+									{% if challenge.solution.state == 'hidden' %}
+										{% set badge_state = 'badge-danger' %}
+									{% elif challenge.solution.state == 'solved' %}
+										{% set badge_state = 'badge-warning' %}
+									{% else %}
+										{% set badge_state = 'badge-success' %}
+									{% endif %}
+									<span class="badge {{ badge_state }}">{{ challenge.solution.state }}</span>
+								{% endif %}
+							</td>
 							<td class="text-center">{{ challenge.creation }}</td>
 							<td class="text-center">{{ challenge.lastChanged }}</td>
 						</tr>

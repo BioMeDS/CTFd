@@ -155,7 +155,6 @@ def load(app):
             )
 
     run_after_route(app, "admin.challenges_listing", challenges_listing)
-
     @admins_only
     def delete_user(user_id):
         if request.method == "DELETE":
