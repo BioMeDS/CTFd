@@ -1,10 +1,10 @@
 import Alpine from "alpinejs";
-import dayjs from "dayjs";
 
 import CTFd from "./index";
 
 import { Modal, Tab, Tooltip } from "bootstrap";
 import highlight from "./theme/highlight";
+import { intl } from "./theme/times";
 
 function addTargetBlank(html) {
   let dom = new DOMParser();
@@ -78,6 +78,7 @@ Alpine.data("Challenge", () => ({
   selectedRating: 0,
   ratingReview: "",
   ratingSubmitted: false,
+  solved_by_me: false,
 
   async init() {
     highlight();
@@ -121,7 +122,7 @@ Alpine.data("Challenge", () => ({
   async showSolves() {
     this.solves = await CTFd.pages.challenge.loadSolves(this.id);
     this.solves.forEach(solve => {
-      solve.date = dayjs(solve.date).format("MMMM Do, h:mm:ss A");
+      solve.date = intl.format(new Date(solve.date));
       return solve;
     });
     new Tab(this.$el).show();
@@ -131,7 +132,7 @@ Alpine.data("Challenge", () => ({
     let response = await CTFd.pages.users.userSubmissions("me", this.id);
     this.submissions = response.data;
     this.submissions.forEach(s => {
-      s.date = dayjs(s.date).format("MMMM Do, h:mm:ss A");
+      s.date = intl.format(new Date(s.date));
       return s;
     });
     new Tab(this.$el).show();
@@ -156,6 +157,7 @@ Alpine.data("Challenge", () => ({
     CTFd._functions.challenge.displaySolution = solution => {
       this.solution = solution.html;
       new Tab(this.$el).show();
+      this.$nextTick(() => highlight());
     };
     await CTFd.pages.challenge.displaySolution(solution_id);
   },
@@ -214,12 +216,23 @@ Alpine.data("Challenge", () => ({
       this.submission,
     );
 
+    // Challenges page might be visible to anonymous users, redirect to login on submit
+    if (this.response.data.status === "authentication_required") {
+      window.location = `${CTFd.config.urlRoot}/login?next=${CTFd.config.urlRoot}${window.location.pathname}${window.location.hash}`;
+      return;
+    }
+
     await this.renderSubmissionResponse();
   },
 
   async renderSubmissionResponse() {
-    if (this.response.data.status === "correct") {
+    const status = this.response.data.status;
+
+    if (status === "correct") {
       this.submission = "";
+      this.solved_by_me = true;
+    } else if (status === "already_solved") {
+      this.solved_by_me = true;
     }
 
     // Decide whether to check for the solution

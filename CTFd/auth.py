@@ -1,7 +1,6 @@
 import requests
-from flask import Blueprint, abort
+from flask import Blueprint, abort, redirect, render_template, request, session, url_for
 from flask import current_app as app
-from flask import redirect, render_template, request, session, url_for
 from flask_babel import lazy_gettext as _l
 
 from CTFd.cache import cache, clear_team_session, clear_user_session
@@ -10,14 +9,13 @@ from CTFd.exceptions.email import (
     UserResetPasswordTokenInvalidException,
 )
 from CTFd.models import Brackets, Teams, UserFieldEntries, UserFields, Users, db
-from CTFd.utils import config, email, get_app_config, get_config
+from CTFd.utils import config, email, get_app_config, get_config, validators
 from CTFd.utils import user as current_user
-from CTFd.utils import validators
 from CTFd.utils.config import can_send_mail, is_teams_mode
 from CTFd.utils.config.integrations import mlc_registration
 from CTFd.utils.config.visibility import registration_visible
 from CTFd.utils.crypto import verify_password
-from CTFd.utils.decorators import ratelimit
+from CTFd.utils.decorators import ratelimit_from_config
 from CTFd.utils.decorators.visibility import check_registration_visibility
 from CTFd.utils.helpers import error_for, get_errors, markup
 from CTFd.utils.logging import log
@@ -36,7 +34,7 @@ auth = Blueprint("auth", __name__)
 
 @auth.route("/confirm", methods=["POST", "GET"])
 @auth.route("/confirm/<data>", methods=["POST", "GET"])
-@ratelimit(method="POST", limit=10, interval=60)
+@ratelimit_from_config(method="POST", config_key="RATELIMIT_CONFIRM")
 def confirm(data=None):
     # If we can't send mails our behavior depends on verify_emails
     if not can_send_mail():
@@ -54,7 +52,7 @@ def confirm(data=None):
     if data and request.method == "GET":
         try:
             user_email = verify_email_confirm_token(data)
-        except (UserConfirmTokenInvalidException):
+        except UserConfirmTokenInvalidException:
             return render_template(
                 "confirm.html",
                 errors=["Your confirmation link is invalid, please generate a new one"],
@@ -118,7 +116,7 @@ def confirm(data=None):
 
 @auth.route("/reset_password", methods=["POST", "GET"])
 @auth.route("/reset_password/<data>", methods=["POST", "GET"])
-@ratelimit(method="POST", limit=10, interval=60)
+@ratelimit_from_config(method="POST", config_key="RATELIMIT_RESET_PASSWORD")
 def reset_password(data=None):
     if config.can_send_mail() is False and data is None:
         return render_template(
@@ -133,7 +131,7 @@ def reset_password(data=None):
     if data is not None:
         try:
             email_address = verify_reset_password_token(data)
-        except (UserResetPasswordTokenInvalidException):
+        except UserResetPasswordTokenInvalidException:
             return render_template(
                 "reset_password.html",
                 errors=["Your reset link is invalid, please generate a new one"],
@@ -220,7 +218,7 @@ def reset_password(data=None):
                     _l("Too many password reset attempts. Please try again later.")
                 ],
             )
-        email.forgot_password(email_address)
+        email.forgot_password(user.email)
 
         return render_template(
             "reset_password.html",
@@ -235,7 +233,7 @@ def reset_password(data=None):
 
 @auth.route("/register", methods=["POST", "GET"])
 @check_registration_visibility
-@ratelimit(method="POST", limit=10, interval=5)
+@ratelimit_from_config(method="POST", config_key="RATELIMIT_REGISTER")
 def register():
     errors = get_errors()
     if current_user.authed():
@@ -440,7 +438,7 @@ def register():
 
 
 @auth.route("/login", methods=["POST", "GET"])
-@ratelimit(method="POST", limit=10, interval=5)
+@ratelimit_from_config(method="POST", config_key="RATELIMIT_LOGIN")
 def login():
     errors = get_errors()
     if request.method == "POST":
@@ -545,7 +543,7 @@ def oauth_login():
 
 
 @auth.route("/redirect", methods=["GET"])
-@ratelimit(method="GET", limit=10, interval=60)
+@ratelimit_from_config(method="GET", config_key="RATELIMIT_OAUTH_REDIRECT")
 def oauth_redirect():
     oauth_code = request.args.get("code")
     state = request.args.get("state")

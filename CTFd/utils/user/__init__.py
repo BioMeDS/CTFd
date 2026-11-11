@@ -24,7 +24,7 @@ def get_current_user():
         if session_hash:
             if session_hash != hmac(user.password):
                 logout_user()
-                if request.content_type == "application/json":
+                if request.is_json:
                     error = 401
                 else:
                     error = redirect(url_for("auth.login", next=request.full_path))
@@ -60,7 +60,7 @@ def get_user_attrs(user_id):
 @cache.memoize(timeout=300)
 def get_user_place(user_id):
     user = Users.query.filter_by(id=user_id).first()
-    if user:
+    if user and user.account:
         return user.account.place
     return None
 
@@ -68,7 +68,7 @@ def get_user_place(user_id):
 @cache.memoize(timeout=300)
 def get_user_score(user_id):
     user = Users.query.filter_by(id=user_id).first()
-    if user:
+    if user and user.account:
         return user.account.score
     return None
 
@@ -87,6 +87,73 @@ def get_team_score(team_id):
     if team:
         return team.score
     return None
+
+
+@cache.memoize(timeout=300)
+def get_user_schema(user_id, user_type):
+    from CTFd.schemas.users import UserSchema
+
+    user = Users.query.filter_by(id=user_id).first()
+    response = UserSchema(view=user_type).dump(user)
+    return response
+
+
+def get_user_public_api(user_id, user_type):
+    from CTFd.utils.config.visibility import scores_visible
+
+    # We cache the schema generation as it's easier to invalidate than this function response
+    response = get_user_schema(user_id=user_id, user_type=user_type)
+    if response.errors:
+        success = False
+        data = response.errors
+        status_code = 400
+        return success, data, status_code
+
+    if scores_visible():
+        response.data["place"] = get_user_place(user_id=user_id)
+        response.data["score"] = get_user_score(user_id=user_id)
+    else:
+        response.data["place"] = None
+        response.data["score"] = None
+
+    success = True
+    data = response.data
+    status_code = 200
+    return success, data, status_code
+
+
+@cache.memoize(timeout=300)
+def get_team_schema(team_id, user_type):
+    from CTFd.schemas.teams import TeamSchema
+
+    team = Teams.query.filter_by(id=team_id).first()
+    schema = TeamSchema(view=user_type)
+    response = schema.dump(team)
+    return response
+
+
+def get_team_public_api(team_id, user_type):
+    from CTFd.utils.config.visibility import scores_visible
+
+    # We cache the schema generation as it's easier to invalidate than this function response
+    response = get_team_schema(team_id=team_id, user_type=user_type)
+    if response.errors:
+        success = False
+        data = response.errors
+        status_code = 400
+        return success, data, status_code
+
+    if scores_visible():
+        response.data["place"] = get_team_place(team_id=team_id)
+        response.data["score"] = get_team_score(team_id=team_id)
+    else:
+        response.data["place"] = None
+        response.data["score"] = None
+
+    success = True
+    data = response.data
+    status_code = 200
+    return success, data, status_code
 
 
 def get_current_team():
@@ -179,6 +246,18 @@ def get_ip(req=None):
     return remote_addr
 
 
+def get_user_agent(req=None):
+    """Returns the User-Agent of the currently in scope request truncated to 256 characters"""
+    if req is None:
+        req = request
+
+    user_agent = req.headers.get("User-Agent")
+    if not user_agent:
+        return None
+
+    return user_agent[:256]
+
+
 def get_locale():
     # Use the user's preferred language
     if authed():
@@ -214,6 +293,24 @@ def get_user_recent_ips(user_id):
         .all()
     )
     return {ip for (ip,) in addrs}
+
+
+def get_current_user_recent_tracking():
+    if authed():
+        return get_user_recent_tracking(user_id=session["id"])
+    else:
+        return None
+
+
+@cache.memoize(timeout=300)
+def get_user_recent_tracking(user_id):
+    hour_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+    entries = (
+        Tracking.query.with_entities(Tracking.ip, Tracking.user_agent)
+        .filter(Tracking.user_id == user_id, Tracking.date >= hour_ago)
+        .all()
+    )
+    return {(ip, user_agent) for (ip, user_agent) in entries}
 
 
 def get_wrong_submissions_per_minute(account_id, return_objects=False):

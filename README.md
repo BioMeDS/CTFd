@@ -2,7 +2,6 @@
 
 ![CTFd MySQL CI](https://github.com/CTFd/CTFd/workflows/CTFd%20MySQL%20CI/badge.svg?branch=master)
 ![Linting](https://github.com/CTFd/CTFd/workflows/Linting/badge.svg?branch=master)
-[![MajorLeagueCyber Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.majorleaguecyber.org%2F)](https://community.majorleaguecyber.org/)
 [![Documentation Status](https://api.netlify.com/api/v1/badges/6d10883a-77bb-45c1-a003-22ce1284190e/deploy-status)](https://docs.ctfd.io)
 
 ## What is CTFd?
@@ -41,20 +40,28 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 
 ## Install
 
-1. Install dependencies: `pip install -r requirements.txt`
-   1. You can also use the `prepare.sh` script to install system dependencies using apt.
-2. Modify [CTFd/config.ini](https://github.com/CTFd/CTFd/blob/master/CTFd/config.ini) to your liking.
-3. Use `python serve.py` or `flask run` in a terminal to drop into debug mode.
+The easiest way to get started is to use a [Hosted CTFd instance](https://ctfd.io/pricing/).
 
-You can use the auto-generated Docker images with the following command:
+For self-hosted installations, check out the [CTFd docs](https://docs.ctfd.io/) for [deployment options](https://docs.ctfd.io/docs/deployment/installation) and the [Getting Started](https://docs.ctfd.io/tutorials/getting-started/) guide.
 
-`docker run -p 8000:8000 -it ctfd/ctfd`
+Below is a summary of a few options for self-hosting CTFd:
 
-Or you can use Docker Compose with the following command from the source repository:
+### Docker
+
+You can use Docker Compose with the following command from the source repository:
 
 `docker compose up`
 
-Check out the [CTFd docs](https://docs.ctfd.io/) for [deployment options](https://docs.ctfd.io/docs/deployment/installation) and the [Getting Started](https://docs.ctfd.io/tutorials/getting-started/) guide
+To use the auto-generated Docker images directly:
+
+`docker run -p 8000:8000 -it ctfd/ctfd`
+
+### Development
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and run `uv sync` to create a virtualenv with the dependencies installed.
+   - You can also install into an existing environment with `pip install -r requirements.txt`, which is generated from `uv.lock`.
+2. Modify [CTFd/config.ini](https://github.com/CTFd/CTFd/blob/master/CTFd/config.ini) to your liking.
+3. Use `uv run serve.py` or `uv run flask run` in a terminal to drop into debug mode.
 
 ## Live Demo
 
@@ -62,26 +69,11 @@ https://demo.ctfd.io/
 
 ## Support
 
-To get basic support, you can join the [MajorLeagueCyber Community](https://community.majorleaguecyber.org/): [![MajorLeagueCyber Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.majorleaguecyber.org%2F)](https://community.majorleaguecyber.org/)
-
 If you prefer commercial support or have a special project, feel free to [contact us](https://ctfd.io/contact/).
 
 ## Managed Hosting
 
 Looking to use CTFd but don't want to deal with managing infrastructure? Check out [the CTFd website](https://ctfd.io/) for managed CTFd deployments.
-
-## MajorLeagueCyber
-
-CTFd is heavily integrated with [MajorLeagueCyber](https://majorleaguecyber.org/). MajorLeagueCyber (MLC) is a CTF stats tracker that provides event scheduling, team tracking, and single sign on for events.
-
-By registering your CTF event with MajorLeagueCyber users can automatically login, track their individual and team scores, submit writeups, and get notifications of important events.
-
-To integrate with MajorLeagueCyber, simply register an account, create an event, and install the client ID and client secret in the relevant portion in `CTFd/config.py` or in the admin panel:
-
-```python
-OAUTH_CLIENT_ID = None
-OAUTH_CLIENT_SECRET = None
-```
 
 ## Credits
 

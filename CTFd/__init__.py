@@ -33,7 +33,7 @@ from CTFd.utils.sessions import CachingSessionInterface
 from CTFd.utils.updates import update_check
 from CTFd.utils.user import get_locale
 
-__version__ = "3.8.2"
+__version__ = "3.8.9"
 __channel__ = "oss"
 
 
@@ -170,7 +170,7 @@ def confirm_upgrade():
         print("/*\\ CTFd has updated and must update the database! /*\\")
         print("/*\\ Please backup your database before proceeding! /*\\")
         print("/*\\ CTFd maintainers are not responsible for any data loss! /*\\")
-        if input("Run database migrations (Y/N)").lower().strip() == "y":  # nosec B322
+        if input("Run database migrations (Y/N)").lower().strip() == "y":
             return True
         else:
             print("/*\\ Ignored database migrations... /*\\")
@@ -293,8 +293,10 @@ def create_app(config="CTFd.config.Config"):
                 proxyfix_args = [int(i) for i in reverse_proxy.split(",")]
                 app.wsgi_app = ProxyFix(app.wsgi_app, *proxyfix_args)
             else:
+                # TODO: CTFd 4.0 We should deprecate this behavior and require that users specify the level of control they want
+                # Maybe investigate Django to see what they do
                 app.wsgi_app = ProxyFix(
-                    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1
+                    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=0
                 )
 
         version = utils.get_config("ctf_version")
@@ -343,7 +345,7 @@ def create_app(config="CTFd.config.Config"):
 
         app.register_blueprint(admin)
 
-        for code in {403, 404, 500, 502}:
+        for code in {401, 403, 404, 500, 502}:
             app.register_error_handler(code, render_error)
 
         init_logs(app)

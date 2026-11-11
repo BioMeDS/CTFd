@@ -70,6 +70,18 @@
 	</div>
 	{% endblock %}
 
+	{% block position %}
+	<div class="form-group">
+		<label for="position">
+			Position<br>
+			<small class="form-text text-muted">
+				This is used to order the challenge. Lower positions are first. Position 0 goes to the end to be sorted by challenge value.
+			</small>
+		</label>
+		<input type="number" class="form-control chal-position" name="position" value="{{ challenge.position }}" required>
+	</div>
+	{% endblock %}
+
 	{% block function %}
 	<div class="form-group">
 		<label for="function">
@@ -152,7 +164,18 @@
 			<small class="form-text text-muted">Maximum amount of attempts users receive. Leave at 0 for unlimited.</small>
 		</label>
 
-		<input type="number" class="form-control chal-attempts" name="max_attempts" value="{{ challenge.max_attempts }}">
+		<input type="number" class="form-control chal-attempts" min="0" name="max_attempts" value="{{ challenge.max_attempts }}">
+	</div>
+	{% endblock %}
+
+	{% block scheduled_at %}
+	<div class="form-group">
+		<label>
+			Scheduled At<br>
+			<small class="form-text text-muted">Optional datetime (in local timezone) when this challenge becomes visible to users. Leave blank to make immediately available if visible.</small>
+		</label>
+
+		<input type="datetime-local" step="1" class="form-control chal-scheduled-at" name="scheduled_at" data-scheduled-at-utc="{{ challenge.scheduled_at.strftime('%Y-%m-%dT%H:%M:%SZ') if challenge.scheduled_at else '' }}">
 	</div>
 	{% endblock %}
 

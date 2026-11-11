@@ -26,7 +26,7 @@ from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.challenges import get_submissions_for_user_id_for_challenge_id
 from CTFd.utils.config import get_config, get_mail_provider
-from CTFd.utils.decorators import admins_only, authed_only, ratelimit
+from CTFd.utils.decorators import admins_only, authed_only, ratelimit_from_config
 from CTFd.utils.decorators.visibility import (
     check_account_visibility,
     check_score_visibility,
@@ -34,7 +34,13 @@ from CTFd.utils.decorators.visibility import (
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
-from CTFd.utils.user import get_current_user, get_current_user_type, is_admin
+from CTFd.utils.user import (
+    get_current_user,
+    get_current_user_type,
+    get_user_attrs,
+    get_user_public_api,
+    is_admin,
+)
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
 
@@ -197,21 +203,21 @@ class UserPublic(Resource):
         },
     )
     def get(self, user_id):
-        user = Users.query.filter_by(id=user_id).first_or_404()
+        user = get_user_attrs(user_id=user_id)
+        if user is None:
+            abort(404)
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
 
         user_type = get_current_user_type(fallback="user")
-        response = UserSchema(view=user_type).dump(user)
-
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
-
-        response.data["place"] = user.place
-        response.data["score"] = user.score
-
-        return {"success": True, "data": response.data}
+        success, data, status_code = get_user_public_api(
+            user_id=user_id, user_type=user_type
+        )
+        if success:
+            return {"success": success, "data": data}, status_code
+        else:
+            return {"success": success, "errors": data}, status_code
 
     @admins_only
     @users_namespace.doc(
@@ -508,9 +514,10 @@ class UserEmails(Resource):
         description="Endpoint to email a User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
-    @ratelimit(method="POST", limit=10, interval=60)
+    @ratelimit_from_config(method="POST", config_key="RATELIMIT_EMAIL_USER")
     def post(self, user_id):
         req = request.get_json()
+        subject = (req.get("subject") or "").strip()
         text = req.get("text", "").strip()
         user = Users.query.filter_by(id=user_id).first_or_404()
 
@@ -526,7 +533,10 @@ class UserEmails(Resource):
                 400,
             )
 
-        result, response = sendmail(addr=user.email, text=text)
+        if subject:
+            result, response = sendmail(addr=user.email, text=text, subject=subject)
+        else:
+            result, response = sendmail(addr=user.email, text=text)
 
         if result is True:
             return {"success": True}

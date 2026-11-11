@@ -66,6 +66,13 @@ def empty_str_cast(value, default=None):
     return value
 
 
+def int_tuple_cast(value, num_ints=None):
+    ints = tuple(int(v) for v in str(value).split(","))
+    if num_ints is not None and len(ints) != num_ints:
+        raise ValueError(f"Expected {num_ints} integers, got {len(ints)}: {value}")
+    return ints
+
+
 def gen_secret_key():
     # Attempt to read the secret from the secret file
     # This will fail if the secret has not been written
@@ -185,6 +192,29 @@ class ServerConfig(object):
         r"^192\.168\.",
     ]
 
+    # === RATELIMIT ===
+    RATELIMIT_DISABLE: bool = process_boolean_str(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_DISABLE"), default=False))
+
+    RATELIMIT_DEFAULT: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_DEFAULT")) or "50,300", num_ints=2)
+
+    RATELIMIT_CONFIRM: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_CONFIRM")) or "10,60", num_ints=2)
+
+    RATELIMIT_RESET_PASSWORD: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_RESET_PASSWORD")) or "10,60", num_ints=2)
+
+    RATELIMIT_REGISTER: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_REGISTER")) or "10,5", num_ints=2)
+
+    RATELIMIT_LOGIN: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_LOGIN")) or "10,5", num_ints=2)
+
+    RATELIMIT_OAUTH_REDIRECT: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_OAUTH_REDIRECT")) or "10,60", num_ints=2)
+
+    RATELIMIT_JOIN_TEAM: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_JOIN_TEAM")) or "10,5", num_ints=2)
+
+    RATELIMIT_EXPORT: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_EXPORT")) or "10,60", num_ints=2)
+
+    RATELIMIT_EMAIL_USER: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_EMAIL_USER")) or "10,60", num_ints=2)
+
+    RATELIMIT_EVENTS: tuple = int_tuple_cast(empty_str_cast(config_ini["ratelimits"].get("RATELIMIT_EVENTS")) or "150,60", num_ints=2)
+
     # === EMAIL ===
     MAILFROM_ADDR: str = config_ini["email"]["MAILFROM_ADDR"] \
         or "noreply@examplectf.com"
@@ -207,7 +237,7 @@ class ServerConfig(object):
 
     MAILGUN_API_KEY: str = empty_str_cast(config_ini["email"]["MAILGUN_API_KEY"])
 
-    MAILGUN_BASE_URL: str = empty_str_cast(config_ini["email"]["MAILGUN_API_KEY"])
+    MAILGUN_BASE_URL: str = empty_str_cast(config_ini["email"]["MAILGUN_BASE_URL"])
 
     MAIL_PROVIDER: str = empty_str_cast(config_ini["email"].get("MAIL_PROVIDER"))
 
@@ -282,6 +312,12 @@ class ServerConfig(object):
     # === OAUTH ===
     OAUTH_CLIENT_ID: str = empty_str_cast(config_ini["oauth"]["OAUTH_CLIENT_ID"])
     OAUTH_CLIENT_SECRET: str = empty_str_cast(config_ini["oauth"]["OAUTH_CLIENT_SECRET"])
+
+    # === GIT ===
+    GITHUB_CLIENT_ID: str = empty_str_cast(config_ini["git"].get("GITHUB_CLIENT_ID", "")) if config_ini.has_section("git") else None
+    GITHUB_URL: str = empty_str_cast(config_ini["git"].get("GITHUB_URL", "")) if config_ini.has_section("git") else None
+    GITLAB_CLIENT_ID: str = empty_str_cast(config_ini["git"].get("GITLAB_CLIENT_ID", "")) if config_ini.has_section("git") else None
+    GITLAB_URL: str = empty_str_cast(config_ini["git"].get("GITLAB_URL", "")) if config_ini.has_section("git") else None
 
     # === MANAGEMENT ===
     PRESET_ADMIN_NAME: str = empty_str_cast(config_ini["management"].get("PRESET_ADMIN_NAME", "")) if config_ini.has_section("management") else None

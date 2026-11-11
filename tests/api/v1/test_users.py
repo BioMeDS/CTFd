@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from unittest.mock import patch
+
 from freezegun import freeze_time
 
 from CTFd.models import Awards, Fails, Solves, Users
@@ -171,6 +173,28 @@ def test_api_users_post_admin_duplicate_information():
             assert resp["errors"]["name"]
             assert resp["success"] is False
             assert Users.query.count() == 2
+    destroy_ctfd(app)
+
+
+def test_api_users_post_admin_duplicate_admin_email():
+    """Creating a user with an email matching the calling admin's returns 400, not 500"""
+    app = create_ctfd()
+    with app.app_context():
+        admin = Users.query.filter_by(id=1).first()
+        with login_as_user(app, "admin") as client:
+            r = client.post(
+                "/api/v1/users",
+                json={
+                    "name": "newuser",
+                    "email": admin.email,
+                    "password": "password",
+                },
+            )
+            assert r.status_code == 400
+            resp = r.get_json()
+            assert resp["success"] is False
+            assert resp["errors"]
+            assert Users.query.count() == 1
     destroy_ctfd(app)
 
 
@@ -885,7 +909,6 @@ def test_api_user_send_email():
     """Can an admin post /api/v1/users/<user_id>/email"""
     app = create_ctfd()
     with app.app_context():
-
         register_user(app)
 
         with login_as_user(app) as client:
@@ -920,12 +943,45 @@ def test_api_user_send_email():
             assert r.status_code == 400
 
         with login_as_user(app, "admin") as admin:
-            r = admin.post(
-                "/api/v1/users/2/email", json={"text": "email should be accepted"}
-            )
-            # Email should go through but since we aren't mocking
-            # the server we get a Connection refused error
-            assert r.status_code == 400
+            with patch("CTFd.api.v1.users.sendmail") as mock_sendmail:
+                mock_sendmail.return_value = (True, "Email sent")
+                r = admin.post(
+                    "/api/v1/users/2/email",
+                    json={"text": "email should be accepted"},
+                )
+                assert r.status_code == 200
+                mock_sendmail.assert_called_once_with(
+                    addr="user@examplectf.com", text="email should be accepted"
+                )
+
+        with login_as_user(app, "admin") as admin:
+            with patch("CTFd.api.v1.users.sendmail") as mock_sendmail:
+                mock_sendmail.return_value = (True, "Email sent")
+                r = admin.post(
+                    "/api/v1/users/2/email",
+                    json={
+                        "subject": "Custom subject for {ctf_name}",
+                        "text": "email should be accepted",
+                    },
+                )
+                assert r.status_code == 200
+                mock_sendmail.assert_called_once_with(
+                    addr="user@examplectf.com",
+                    text="email should be accepted",
+                    subject="Custom subject for {ctf_name}",
+                )
+
+        with login_as_user(app, "admin") as admin:
+            with patch("CTFd.api.v1.users.sendmail") as mock_sendmail:
+                mock_sendmail.return_value = (True, "Email sent")
+                r = admin.post(
+                    "/api/v1/users/2/email",
+                    json={"subject": None, "text": "email should be accepted"},
+                )
+                assert r.status_code == 200
+                mock_sendmail.assert_called_once_with(
+                    addr="user@examplectf.com", text="email should be accepted"
+                )
 
     destroy_ctfd(app)
 
