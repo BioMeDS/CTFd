@@ -19,6 +19,7 @@ dependencies = [
     "bcrypt==4.0.1",
     "requests==2.34.2",
     "PyMySQL[rsa]==1.1.1",
+    "cryptography==44.0.2",
     "gunicorn==23.0.0",
     "dataset==1.6.2",
     "cmarkgfm==2024.11.20",

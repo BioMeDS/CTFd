@@ -43,8 +43,10 @@ cmarkgfm==2024.11.20
     # via ctfd
 colorama==0.4.6 ; sys_platform == 'win32'
     # via click
-cryptography==50.0.2
-    # via pymysql
+cryptography==44.0.2
+    # via
+    #   ctfd
+    #   pymysql
 dataset==1.6.2
     # via ctfd
 flask==2.1.3
