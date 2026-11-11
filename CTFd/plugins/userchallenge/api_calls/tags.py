@@ -8,8 +8,20 @@ from CTFd.schemas.tags import TagSchema
 
 
 def load(app):
+    @app.route('/userchallenge/api/tags', methods=['GET'])
+    def getAvailableTags():
+        tags = (
+            Tags.query.with_entities(Tags.value)
+            .filter(Tags.value.isnot(None))
+            .distinct()
+            .order_by(Tags.value)
+            .all()
+        )
+
+        return {"success": True, "data": [{"value": tag.value} for tag in tags]}
+
     @app.route('/userchallenge/api/challenges/<challenge_id>/tags',methods=['GET'])
-    def getTags(challenge_id):
+    def getChallengeTags(challenge_id):
         response = []
 
         tags = Tags.query.filter_by(challenge_id=challenge_id).all()

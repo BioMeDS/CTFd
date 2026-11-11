@@ -12,19 +12,42 @@
     </div>
 
     <div class="form-group">
-      <label
-        >Tag
-        <br />
-        <small class="text-muted">Type tag and press Enter</small>
-      </label>
-      <input
+      <label for="tags-add-input">Tag</label>
+      <select
         id="tags-add-input"
-        maxlength="80"
-        type="text"
         class="form-control"
         v-model="tagValue"
-        @keyup.enter="addTag()"
+        @change="newTagValue = tagValue === '__new__' ? '' : newTagValue"
+      >
+        <option value="" disabled>Select a tag</option>
+        <option value="__new__">Add a new tag...</option>
+        <option
+          v-for="tag in availableTags"
+          :key="tag.value"
+          :value="tag.value"
+          :disabled="isTagSelected(tag.value)"
+        >
+          {{ tag.value }}
+        </option>
+      </select>
+      <input
+        v-if="tagValue === '__new__'"
+        id="new-tag-input"
+        maxlength="80"
+        type="text"
+        class="form-control mt-2"
+        placeholder="Enter a new tag"
+        v-model.trim="newTagValue"
+        @keyup.enter="setTag()"
       />
+      <button
+        type="button"
+        class="btn btn-primary mt-2"
+        :disabled="!tagToSet"
+        @click="setTag()"
+      >
+        Set tag
+      </button>
     </div>
   </div>
 </template>
@@ -39,10 +62,28 @@ export default {
   data: function () {
     return {
       tags: [],
+      availableTags: [],
       tagValue: "",
+      newTagValue: "",
     };
   },
   methods: {
+    loadAvailableTags: function () {
+      CTFd.fetch("/userchallenge/api/tags", {
+        method: "GET",
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((response) => {
+          if (response.success) {
+            this.availableTags = response.data;
+          }
+        });
+    },
+    isTagSelected: function (value) {
+      return this.tags.some((tag) => tag.value === value);
+    },
     loadTags: function () {
       CTFd.fetch(`/userchallenge/api/challenges/${this.$props.challenge_id}/tags`, {
         method: "GET",
@@ -61,19 +102,30 @@ export default {
           }
         });
     },
-    addTag: function () {
-      if (this.tagValue) {
-        const params = {
-          value: this.tagValue,
-          challenge: this.$props.challenge_id,
-        };
-        CTFd.api.post_tag_list({}, params).then((response) => {
+    setTag: function () {
+      if (!this.tagToSet) {
+        return;
+      }
+
+      const params = {
+        value: this.tagToSet,
+        challenge: this.$props.challenge_id,
+      };
+      CTFd.fetch("/userchallenge/api/tags", {
+        method: "POST",
+        body: JSON.stringify(params),
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((response) => {
           if (response.success) {
             this.tagValue = "";
+            this.newTagValue = "";
             this.loadTags();
+            this.loadAvailableTags();
           }
         });
-      }
     },
     deleteTag: function (tag_id) {
       CTFd.api.delete_tag({ tagId: tag_id }).then((response) => {
@@ -83,8 +135,17 @@ export default {
       });
     },
   },
+  computed: {
+    tagToSet: function () {
+      if (this.tagValue === "__new__") {
+        return this.newTagValue;
+      }
+      return this.tagValue;
+    },
+  },
   created() {
     this.loadTags();
+    this.loadAvailableTags();
   },
 };
 </script>
