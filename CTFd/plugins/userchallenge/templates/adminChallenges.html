@@ -98,18 +98,9 @@
 								</div>
 							</td>
 							<td class="text-center">{{ challenge.id }}</td>
-							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
-							<td>{{ challenge.category }}</td>
-							<td>
-								{% if challenge.module %}
-									<a href="{{ url_for('admin.modules_detail', module_id=challenge.module.id) }}">{{ challenge.module.name }}</a>
-								{% else %}
-									<span class="text-muted">-</span>
-								{% endif %}
-							</td>
+							
 							<td>{{challenge.author}}</td>
-							<td class="text-center">{{ challenge.value }}</td>
-							<td class="text-center">{{ challenge.type }}</td>
+							
 							<td class="text-center">
 								{{ challenge_state_badge(challenge) }}
 							</td>

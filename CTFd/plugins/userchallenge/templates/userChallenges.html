@@ -1,15 +1,9 @@
 {% extends "userBase.html" %}
 
-
-{% block stylesheets %}
-
-{% endblock %}
-
-
 {% block content %}
 <div class="jumbotron">
-	
 	<div class="container">
+
 		<h1>My Challenges
 			{% if not UserChallengeReadOnly() %}
 			<a class="no-decoration" href="{{url_for('view_newChallenge')}}">
@@ -19,6 +13,7 @@
 			</a>
 			{% endif %}
 		</h1>
+		
 	</div>
 </div>
 <div class="container">
