@@ -1,12 +1,24 @@
+import html as html_lib
+import re
 import smtplib
 from email.message import EmailMessage
-from email.utils import formataddr
+from email.utils import formataddr, formatdate, make_msgid, parseaddr
 from socket import timeout
 
 from CTFd.utils import get_app_config, get_config
 
 
-def sendmail_hidden(addr, text, subject, html=False):
+def _html_to_text(markup):
+    """Rough plain-text fallback for the text/plain part of HTML mails."""
+    text = re.sub(r"(?is)<(script|style).*?</\1>", "", markup)
+    text = re.sub(r"(?i)<br\s*/?>|</(p|div|h[1-6]|li|tr)>", "\n", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html_lib.unescape(text)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def sendmail_smtp(addr, text, subject, html=False):
+    """Send a mail to a single recipient via SMTP."""
     ctf_name = get_config("ctf_name")
     mailfrom_addr = get_config("mailfrom_addr") or get_app_config("MAILFROM_ADDR")
     mailfrom_addr = formataddr((ctf_name, mailfrom_addr))
@@ -37,14 +49,18 @@ def sendmail_hidden(addr, text, subject, html=False):
         smtp = get_smtp(**data)
 
         msg = EmailMessage()
-        msg.set_content(text)
         if html:
+            msg.set_content(_html_to_text(text))
             msg.add_alternative(text, subtype="html")
+        else:
+            msg.set_content(text)
 
         msg["Subject"] = subject
         msg["From"] = mailfrom_addr
-        msg["To"] = mailfrom_addr
-        msg["Bcc"] = addr
+        msg["To"] = addr
+        # RFC 5322 requires Date; Message-ID is expected by iCloud/Gmail filters
+        msg["Date"] = formatdate(usegmt=True)
+        msg["Message-ID"] = make_msgid(domain=parseaddr(mailfrom_addr)[1].rpartition("@")[2] or None)
         custom_smtp = bool(get_config("mail_server"))
 
         if custom_smtp:

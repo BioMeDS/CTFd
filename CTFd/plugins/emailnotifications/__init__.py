@@ -49,7 +49,7 @@ def load(app):
     app.jinja_env.globals.update(NotificationsGetCheck=get_user_check)
     app.register_blueprint(emailNotifs, url_prefix="/emailnotifications")
 
-    keys = ["sendEmailNotif", "allowUserCheckmarkNotif", "emailPrivacyNotif"]
+    keys = ["sendEmailNotif", "allowUserCheckmarkNotif"]
     for k in keys:
         if get_config(k) is None:
             toggle_config(k)
@@ -72,8 +72,6 @@ def load(app):
     def notif_config():
         notif = get_config("sendEmailNotif")
         check = get_config("allowUserCheckmarkNotif")
-        privacy = get_config("emailPrivacyNotif")
-
         if notif:
             notif = "enabled"
         else:
@@ -84,16 +82,11 @@ def load(app):
         else:
             check = "disabled"
 
-        if privacy:
-            privacy = "enabled"
-        else:
-            privacy = "disabled"
-
         configs = []
         configs.append(
             ConfigPanel(
                 "Email Notifications",
-                "Enabeling Email-Notifications sends all Notifications to all users per email.\n Disabling also removes the checkmark option from User profiles.",
+                "Enabling Email-Notifications sends all Notifications to all users per email.\n Disabling also removes the checkmark option from User profiles.",
                 notif,
                 "sendEmailNotif",
             )
@@ -104,14 +97,6 @@ def load(app):
                 "Toggles wether Users can opt out of email Notifications or not.",
                 check,
                 "allowUserCheckmarkNotif",
-            )
-        )
-        configs.append(
-            ConfigPanel(
-                "Privacy",
-                "Toggles wether Users can see other receivers in mails.",
-                privacy,
-                "emailPrivacyNotif",
             )
         )
 

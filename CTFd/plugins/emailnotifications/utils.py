@@ -6,9 +6,8 @@ from CTFd.models import db
 from CTFd.plugins.emailnotifications.mails.mailgunmails import (
     sendmail as sendmail_mailgun,
 )
-from CTFd.plugins.emailnotifications.mails.smtpmails import sendmail_hidden
+from CTFd.plugins.emailnotifications.mails.smtpmails import sendmail_smtp
 from flask import url_for
-from CTFd.utils import get_config
 from CTFd.utils.config import get_mail_provider
 from CTFd.utils.email import sendmail
 from CTFd.utils.logging import log
@@ -70,27 +69,12 @@ def get_all_users_checked():
 
 
 def send_mail_all_users(notif):
+    # one separate mail per user, each addressed to that user
     users = get_all_users_checked()
-    if get_config("emailPrivacyNotif"):
-        # send mail through inbuilt api for each user
-        for addr in users:
-            text = _add_static_image_sources(notif["content"])
-            title = notif["title"]
-            _send_notification_email(addr, text, title)
-    else:
-        # send mail through inbuilt api to every user in addr. makes all adresses public
-        if len(users) > 1:
-            addr = ", ".join(users)
-        elif len(users) > 0:
-            addr = users[0]
-        else:
-            return
-
-        text = _add_static_image_sources(notif["content"])
-        title = notif["title"]
-
+    text = _add_static_image_sources(notif["content"])
+    title = notif["title"]
+    for addr in users:
         _send_notification_email(addr, text, title)
-    return
 
 
 def _send_notification_email(addr, text, title):
@@ -101,7 +85,7 @@ def _send_notification_email(addr, text, title):
             "registrations",
             "################# sent as smtp",
         )
-        result = sendmail_hidden(addr, text, title, html=True)
+        result = sendmail_smtp(addr, text, title, html=True)
         log(
             "registrations",
             "################# has done this: {result}",
