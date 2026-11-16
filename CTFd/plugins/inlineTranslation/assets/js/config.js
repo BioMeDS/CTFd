@@ -1,6 +1,8 @@
 import CTFd from "@ctfdio/ctfd-js";
 import $ from "jquery";
 
+CTFd.init(window.init);
+
 $(".toggle-button").click(function() {
     function foo (res) {
         $("#"+res.id).html(res.data)
