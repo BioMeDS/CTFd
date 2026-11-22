@@ -2,15 +2,22 @@
 
 from flask import request
 
-from CTFd.models import Hints, HintUnlocks, db
-from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
+from CTFd.models import Hints, db
+from CTFd.plugins.userchallenge.utils import (
+    ReadOnly,
+    challenge_id_from,
+    require_body_challenge_owner,
+    require_challenge_owner,
+    userChallenge_allowed,
+)
 from CTFd.schemas.hints import HintSchema
-from CTFd.utils.user import get_current_user, is_admin
 
 
 def load(app):
     @app.route('/userchallenge/api/challenges/<challenge_id>/hints',methods=['GET'])
+    @userChallenge_allowed
     def getHints(challenge_id):
+        require_challenge_owner(challenge_id)
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
         response = schema.dump(hints)
@@ -24,6 +31,7 @@ def load(app):
     @ReadOnly
     def createHint():
         req = request.get_json()
+        require_challenge_owner(challenge_id_from(req))
         schema = HintSchema(view="admin")
         response = schema.load(req, session=db.session)
 
@@ -37,70 +45,14 @@ def load(app):
 
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/hints/<hint_id>',methods=['GET'])
+    @userChallenge_allowed
     def getHint(hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
-        user = get_current_user()
+        # Only the challenge's creator (or an admin) may read hints through this
+        # API, so they always get the full admin view of their own hint
+        require_challenge_owner(hint.challenge_id)
 
-        # We allow public accessing of hints if challenges are visible and there is no cost or prerequisites
-        # If there is a cost or a prereq we should block the user from seeing the hint
-        if user is None:
-            if hint.cost or hint.prerequisites:
-                return (
-                    {
-                        "success": False,
-                        "errors": {"cost": ["You must login to unlock this hint"]},
-                    },
-                    403,
-                )
-
-        if hint.prerequisites:
-            requirements = hint.prerequisites
-
-            # Get the IDs of all hints that the user has unlocked
-            all_unlocks = HintUnlocks.query.filter_by(account_id=user.account_id).all()
-            unlock_ids = {unlock.target for unlock in all_unlocks}
-
-            # Get the IDs of all free hints
-            free_hints = Hints.query.filter_by(cost=0).all()
-            free_ids = {h.id for h in free_hints}
-
-            # Add free hints to unlocked IDs
-            unlock_ids.update(free_ids)
-
-            # Filter out hint IDs that don't exist
-            all_hint_ids = {h.id for h in Hints.query.with_entities(Hints.id).all()}
-            prereqs = set(requirements).intersection(all_hint_ids)
-
-            # If the user has the necessary unlocks or is admin we should allow them to view
-            if unlock_ids >= prereqs or is_admin():
-                pass
-            else:
-                return (
-                    {
-                        "success": False,
-                        "errors": {
-                            "requirements": [
-                                "You must unlock other hints before accessing this hint"
-                            ]
-                        },
-                    },
-                    403,
-                )
-
-        view = "unlocked"
-        if hint.cost:
-            view = "locked"
-            unlocked = HintUnlocks.query.filter_by(
-                account_id=user.account_id, target=hint.id
-            ).first()
-            if unlocked:
-                view = "unlocked"
-
-        if is_admin():
-            if request.args.get("preview", False):
-                view = "admin"
-
-        response = HintSchema(view=view).dump(hint)
+        response = HintSchema(view="admin").dump(hint)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -111,7 +63,9 @@ def load(app):
     @userChallenge_allowed
     def patchHint(hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
+        require_challenge_owner(hint.challenge_id)
         req = request.get_json()
+        require_body_challenge_owner(req)
 
         schema = HintSchema(view="admin")
         response = schema.load(req, instance=hint, partial=True, session=db.session)
@@ -130,6 +84,7 @@ def load(app):
     @ReadOnly
     def deleteHint(hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
+        require_challenge_owner(hint.challenge_id)
         db.session.delete(hint)
         db.session.commit()
         db.session.close()

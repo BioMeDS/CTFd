@@ -1,4 +1,5 @@
 {% extends "userBase.html" %}
+{% from "macros/userChallenges.html" import challenge_state_badge %}
 
 {% block stylesheets %}
 	{{ Assets.css("assets/css/challenge-board.scss", theme="admin") }}
@@ -25,16 +26,37 @@
 		</div>
 	</div>
 
-	<div class="modal fade" id="challenge-comments-window" role="dialog">
+	<div class="modal fade" id="challenge-ratings-window" role="dialog">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h2 class="modal-action text-center w-100">Comments</h2>
+					<h2 class="modal-title text-center w-100">Ratings</h2>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body clearfix">
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-12">
+							<div id="ratings-box">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="challenge-comments-window" role="dialog">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 class="modal-title text-center w-100">Comments</h2>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
 					<div class="row">
 						<div class="col-md-12">
 							<div id="comment-box">
@@ -49,16 +71,13 @@
 	<div class="jumbotron">
 		<div class="container">
 			{%if UserChallengeReadOnly()%}
-			<h3 class="text-center text-info"> Read Only</h3> </h3>
+			<h3 class="text-center text-info">Read Only</h3>
 			{%endif%}
 			<h1 class="text-center">{{ challenge.name }}</h1>
 			<h2 class="text-center">{{ challenge.category }}</h2>
 			<h2 class="text-center">{{ challenge.type }}</h2>
-			{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
 			<h5>
-				<span class="badge {{ badge_state }} challenge-state">
-					{{ challenge.state }}
-				</span>
+				{{ challenge_state_badge(challenge, classes="challenge-state") }}
 			</h5>
 			<h3 class="text-center">{{ challenge.value }} points</h3>
 			<div class="pt-3">
@@ -66,29 +85,37 @@
 					<i class="btn-fa fas fa-file-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Preview Challenge"></i>
 				</a>
+				<a class="ratings-challenge" id="ratings-viewer-load">
+					<i class="btn-fa fa-regular fa-star fa-2x px-2" data-toggle="tooltip" data-placement="top"
+					   title="Challenge Ratings"></i>
+				</a>
 				<a class="comments-challenge">
 					<i class="btn-fa fas fa-comments fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Comments"></i>
-				</a>	
+				</a>
+				{% if not UserChallengeReadOnly() %}
 				<a class="delete-challenge">
 					<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Delete Challenge"></i>
 				</a>
+				{% endif %}
 			</div>
 		</div>
 	</div>
 
-	<div class="container">
+	<div class="container-fluid" style="width: 90%;">
 		<div class="row">
 			<div class="col-md-6">
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link small active" data-toggle="tab" href="#files" role="tab">Files</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#flags" role="tab">Flags</a>
+					<a class="nav-item nav-link small" data-toggle="tab" href="#solution" role="tab">Solution</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#topics" role="tab">Topics</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#tags" role="tab">Tags</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#hints" role="tab">Hints</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#requirements" role="tab">Requirements</a>
 					<a class="nav-item nav-link small" data-toggle="tab" href="#next" role="tab">Next</a>
+					<a class="nav-item nav-link small" data-toggle="tab" href="#module" role="tab">Module</a>
 				</nav>
 
 				<div class="tab-content" id="nav-tabContent">
@@ -105,6 +132,14 @@
 							<div class="col-md-12">
 								<h3 class="text-center py-3 d-block">Flags</h3>
 								{% include "modals/challenges/flags.html" %}
+							</div>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="solution" role="tabpanel">
+						<div class="row">
+							<div class="col-md-12">
+								<h3 class="text-center py-3 d-block">Solution</h3>
+								{% include "modals/challenges/solution.html" %}
 							</div>
 						</div>
 					</div>
@@ -148,18 +183,20 @@
 							</div>
 						</div>
 					</div>
+					<div class="tab-pane fade" id="module" role="tabpanel">
+						<div class="row">
+							<div class="col-md-12">
+								<h3 class="text-center py-3 d-block">Module</h3>
+								{% include "modals/challenges/module.html" %}
+							</div>
+						</div>
+					</div>
 				</div>
 
 			</div>
-			{%if UserChallengeReadOnly()%}
-			<div id="challenge-update-container" class="col-md-6">
-				{{ update_template |safe }}
-			</div>
-			{%else%}
 			<div id="challenge-update-container" class="col-md-6">
 				{{ update_template | safe }}
 			</div>
-			{%endif%}
 		</div>
 	</div>
 
@@ -169,7 +206,9 @@
 	<script>
         var CHALLENGE_ID = {{ challenge.id }};
         var CHALLENGE_NAME = {{ challenge.name | tojson }};
+        var CHALLENGE_SOLUTION_ID = {{ challenge.solution_id | tojson }};
 	</script>
+	<script defer src="{{ request.script_root }}{{ update_script }}"></script>
 {% endblock %}
 
 

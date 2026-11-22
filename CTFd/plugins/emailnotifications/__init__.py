@@ -27,7 +27,7 @@ from CTFd.utils.decorators.visibility import check_registration_visibility
 from CTFd.utils.helpers import get_errors, get_infos, markup
 from CTFd.utils.logging import log
 from CTFd.utils.modes import TEAMS_MODE
-from CTFd.utils.user import get_current_team, get_current_user
+from CTFd.utils.user import get_current_team, get_current_user, is_admin
 
 cache.memoize()
 
@@ -102,8 +102,12 @@ def load(app):
 
         return render_template("notificationConfig.html", configs=configs)
 
-    @admins_only
+    # These hooks run on every request to their route, so they must not use
+    # @admins_only (that would block the route for regular users); they just
+    # skip their own work for non-admins instead.
     def notification_post(response):
+        if not is_admin():
+            return None
         if request.method == "POST" and response[0].get_json():
             email = get_config("sendEmailNotif")
             if email:
@@ -201,7 +205,10 @@ def load(app):
     def set_notif_check():
         if get_config("sendEmailNotif") and request.method == "PATCH":
             user = get_current_user()
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
+            # Only update the setting when the request actually contains it
+            if "notifications" not in data:
+                return None
             # email notifications update
             checked = True if data["notifications"] == "true" else False
             db.session.query(UserNotifs).filter(UserNotifs.user == user.id).update(
@@ -211,18 +218,23 @@ def load(app):
 
     run_before_route(app, "api.users_user_private", set_notif_check)
 
-    @admins_only
     def patch_user(user_id):
+        if not is_admin():
+            return None
         if get_config("sendEmailNotif") and request.method == "PATCH":
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
+            # Only update the setting when the request actually contains it
+            if "notifications" not in data:
+                return None
             checked = True if data["notifications"] == "true" else False
             UserNotifs.query.filter_by(user=user_id).update({"data": checked})
             db.session.commit()
 
     run_before_route(app, "api.users_user_public", patch_user)
 
-    @admins_only
     def delete_user(user_id):
+        if not is_admin():
+            return None
         if request.method == "DELETE":
             UserNotifs.query.filter_by(user=user_id).delete()
 

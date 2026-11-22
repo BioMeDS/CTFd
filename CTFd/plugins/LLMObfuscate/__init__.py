@@ -43,12 +43,23 @@ def load(app):
 
 
     def obfuscate_challenge_description(res,challenge_id):
-        data = res[0].get_json()['data']
-        if request.method == "GET":
-            modified = insert_in_element(data['view'],"<span style='font-size:0px; text-align: center; hidden'>"+get_config("LLMObfuscationPrompt")+"</span>", "challenge-desc")
-            if modified:
-                data['view'] = modified
-            
+        # Only touch successful GET responses that contain a rendered view.
+        # PATCH/DELETE responses (DELETE has no "data") and anonymized
+        # challenges (no "view") are passed through unchanged.
+        if request.method != "GET":
+            return None
+        response = res[0]
+        if not hasattr(response, "get_json"):
+            return None
+        body = response.get_json(silent=True) or {}
+        data = body.get("data")
+        if not body.get("success") or not isinstance(data, dict) or "view" not in data:
+            return None
+
+        modified = insert_in_element(data['view'],"<span style='font-size:0px; text-align: center; hidden'>"+get_config("LLMObfuscationPrompt")+"</span>", "challenge-desc")
+        if modified:
+            data['view'] = modified
+
         return {"success": True, "data": data}
     
     run_after_route(app,'api.challenges_challenge',obfuscate_challenge_description)

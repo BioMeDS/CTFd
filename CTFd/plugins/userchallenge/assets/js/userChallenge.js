@@ -1,6 +1,7 @@
 import { htmlEntities } from "@ctfdio/ctfd-js/utils/html";
 import "bootstrap/js/dist/tab";
 import $ from "jquery";
+import dayjs from "dayjs";
 import Vue from "vue";
 import CTFd from "./compat/CTFd";
 import { ezAlert, ezQuery, ezToast } from "./compat/ezq";
@@ -11,7 +12,9 @@ import ChallengeFilesList from "./components/files/ChallengeFilesList.vue";
 import FlagList from "./components/flags/FlagList.vue";
 import HintsList from "./components/hints/HintsList.vue";
 import NextChallenge from "./components/next/NextChallenge.vue";
+import RatingsViewer from "./components/ratings/RatingsViewer.vue";
 import Requirements from "./components/requirements/Requirements.vue";
+import SolutionEditor from "./components/solution/SolutionEditor.vue";
 import TagsList from "./components/tags/TagsList.vue";
 import TopicsList from "./components/topics/TopicsList.vue";
 import "./main";
@@ -138,9 +141,68 @@ function handleChallengeOptions(event) {
   });
 }
 
+const SCHEDULE_TOOLTIPS = {
+  scheduled: "Becomes visible to users at {time}.",
+  hidden: "This challenge is hidden. Scheduling will not make it visible.",
+};
+
+// The API serializes scheduled_at as a naive UTC timestamp, so mark it as UTC
+// before parsing or dayjs would read it as local time.
+function parseScheduledAt(value) {
+  return dayjs(/(Z|[+-]\d{2}:?\d{2})$/.test(value) ? value : value + "Z");
+}
+
+// Mirrors the challenge_state_badge macro so that the badge
+// stays accurate after saving without requiring a page reload.
+function updateChallengeStateBadge(state, scheduledAt) {
+  const pending =
+    state === "visible" &&
+    scheduledAt &&
+    parseScheduledAt(scheduledAt).isAfter(dayjs());
+  const displayState = pending ? "scheduled" : state;
+  const badgeClass =
+    { scheduled: "badge-warning", hidden: "badge-danger" }[displayState] ||
+    "badge-success";
+
+  const $badge = $(".challenge-state");
+  $badge.tooltip("dispose");
+  $badge
+    .removeClass("badge-success badge-danger badge-warning")
+    .addClass(badgeClass)
+    .text(displayState);
+
+  const note = scheduledAt ? SCHEDULE_TOOLTIPS[displayState] : undefined;
+  if (note) {
+    // Only the scheduled note names a time
+    if (displayState === "scheduled") {
+      $badge.attr("data-schedule-time", scheduledAt);
+    } else {
+      $badge.removeAttr("data-schedule-time");
+    }
+    $badge
+      .attr("data-toggle", "tooltip")
+      .attr("data-placement", "top")
+      .attr(
+        "title",
+        note.replace(
+          "{time}",
+          parseScheduledAt(scheduledAt).format("MMMM Do, h:mm:ss A"),
+        ),
+      )
+      .tooltip();
+  } else {
+    $badge
+      .removeAttr("data-toggle")
+      .removeAttr("data-placement")
+      .removeAttr("data-schedule-time")
+      .removeAttr("data-original-title")
+      .removeAttr("title");
+  }
+}
+
 $(() => {
   $(".preview-challenge").click(function (_e) {
-    let url = `/userchallenge/challenges/preview/${window.CHALLENGE_ID}`;
+    let url = `${CTFd.config.urlRoot}/userchallenge/challenges/preview/${window.CHALLENGE_ID}`;
     $("#challenge-window").html(
       `<iframe src="${url}" height="100%" width="100%" frameBorder=0></iframe>`,
     );
@@ -149,6 +211,10 @@ $(() => {
 
   $(".comments-challenge").click(function (_event) {
     $("#challenge-comments-window").modal();
+  });
+
+  $(".ratings-challenge").click(function (_event) {
+    $("#challenge-ratings-window").modal();
   });
 
   $(".delete-challenge").click(function (_e) {
@@ -173,9 +239,24 @@ $(() => {
     });
   });
 
+  $(".chal-scheduled-at").each(function () {
+    const $input = $(this);
+    const utc = $input.data("scheduled-at-utc");
+    if (utc) {
+      $input.val(dayjs(utc).format("YYYY-MM-DDTHH:mm:ss"));
+    }
+
+    $input.data("initial", $input.val());
+  });
+
   $("#challenge-update-container > form").submit(function (e) {
     e.preventDefault();
     var params = $(e.target).serializeJSON(true);
+
+    if ("scheduled_at" in params) {
+      const raw = params.scheduled_at;
+      params.scheduled_at = raw ? dayjs(raw).toISOString() : null;
+    }
 
     CTFd.fetch("/userchallenge/api/challenges/" + window.CHALLENGE_ID + "/flags", {
       method: "GET",
@@ -204,21 +285,10 @@ $(() => {
             })
             .then(function (response) {
               if (response.success) {
-                $(".challenge-state").text(response.data.state);
-                switch (response.data.state) {
-                  case "visible":
-                    $(".challenge-state")
-                      .removeClass("badge-danger")
-                      .addClass("badge-success");
-                    break;
-                  case "hidden":
-                    $(".challenge-state")
-                      .removeClass("badge-success")
-                      .addClass("badge-danger");
-                    break;
-                  default:
-                    break;
-                }
+                updateChallengeStateBadge(
+                  response.data.state,
+                  response.data.scheduled_at,
+                );
                 ezToast({
                   title: "Success",
                   body: "Your challenge has been updated!",
@@ -411,6 +481,18 @@ $(() => {
     }).$mount(vueContainer);
   }
 
+  // Load SolutionEditor component
+  if (document.querySelector("#challenge-solution")) {
+    const solutionEditor = Vue.extend(SolutionEditor);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-solution").appendChild(vueContainer);
+    new solutionEditor({
+      propsData: {
+        challenge_id: window.CHALLENGE_ID,
+      },
+    }).$mount(vueContainer);
+  }
+
   // Because this JS is shared by a few pages,
   // we should only insert the CommentBox if it's actually in use
   if (document.querySelector("#comment-box")) {
@@ -423,7 +505,17 @@ $(() => {
     }).$mount(vueContainer);
   }
 
-  $.get("/userchallenge/api/challenges/types", function (res) {
+  // Load RatingsViewer component
+  if (document.querySelector("#ratings-box")) {
+    const ratingsViewer = Vue.extend(RatingsViewer);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#ratings-box").appendChild(vueContainer);
+    new ratingsViewer({
+      propsData: { challengeId: window.CHALLENGE_ID },
+    }).$mount(vueContainer);
+  }
+
+  $.get(CTFd.config.urlRoot + "/userchallenge/api/challenges/types", function (res) {
     const data = res.data;
     loadChalTemplate(data["standard"]);
 

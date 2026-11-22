@@ -5,18 +5,51 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.constants import RawEnum
 from CTFd.models import ChallengeFiles as ChallengeFilesModel
 from CTFd.models import Files, db
-from CTFd.plugins.userchallenge.utils import (ReadOnly, UserFiles,
-                                              userChallenge_allowed)
+from CTFd.plugins.userchallenge.utils import (
+    ReadOnly,
+    UserFiles,
+    require_challenge_owner,
+    user_owns_file,
+    userChallenge_allowed,
+)
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
-from CTFd.utils.user import get_current_user
+from CTFd.utils.user import get_current_user, is_admin
+
+
+def _check_upload_targets(form_args):
+    """
+    Non-admins may only attach uploads to their own challenges/solutions and
+    may never attach files to CMS pages
+    """
+    from flask import abort
+
+    from CTFd.models import Solutions
+
+    if is_admin():
+        return
+    if form_args.get("page_id") or form_args.get("page"):
+        abort(403)
+    # Uploads without a target (media library, e.g. images in a description)
+    # are allowed and tracked per user via UserFiles
+    challenge_id = form_args.get("challenge_id") or form_args.get("challenge")
+    if challenge_id is not None:
+        require_challenge_owner(challenge_id)
+    solution_id = form_args.get("solution_id") or form_args.get("solution")
+    if solution_id is not None:
+        solution = Solutions.query.filter_by(id=solution_id).first()
+        if solution is None:
+            abort(404)
+        require_challenge_owner(solution.challenge_id)
 
 
 def load(app):
     @app.route('/userchallenge/api/challenges/<challenge_id>/files', methods=['GET'])
+    @userChallenge_allowed
     def getchallengeFiles(challenge_id):
+        require_challenge_owner(challenge_id)
         response = []
 
         challenge_files = ChallengeFilesModel.query.filter_by(
@@ -60,6 +93,7 @@ def load(app):
     @userChallenge_allowed
     @ReadOnly
     def uploadFile(form_args):
+        _check_upload_targets(form_args)
         files = request.files.getlist("file")
         location = form_args.get("location")
         # challenge_id
@@ -98,6 +132,8 @@ def load(app):
     @ReadOnly
     def deleteFile(file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
+        if not user_owns_file(f.id):
+            return {"success": False, "errors": {"": ["Forbidden"]}}, 403
 
         uploads.delete_file(file_id=f.id)
         db.session.delete(f)
@@ -106,8 +142,11 @@ def load(app):
 
         return {"success": True}
     @app.route('/userchallenge/api/files/<file_id>',methods=['GET'])
+    @userChallenge_allowed
     def getFile(file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
+        if not user_owns_file(f.id):
+            return {"success": False, "errors": {"": ["Forbidden"]}}, 403
         schema = FileSchema()
         response = schema.dump(f)
 
@@ -116,6 +155,7 @@ def load(app):
 
         return {"success": True, "data": response.data}
     @app.route('/userchallenge/api/files/',methods=['GET'])
+    @userChallenge_allowed
     @validate_args(
         {
             "type": (str, None),
@@ -181,6 +221,7 @@ def load(app):
         location="form",
     )
     def postPageFiles(form_args):
+        _check_upload_targets(form_args)
         files = request.files.getlist("file")
         location = form_args.get("location")
         # challenge_id

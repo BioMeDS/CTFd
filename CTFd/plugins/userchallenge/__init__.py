@@ -1,13 +1,22 @@
-from flask import Blueprint, abort, render_template, request, url_for
+from flask import (
+    Blueprint,
+    abort,
+    get_template_attribute,
+    render_template,
+    request,
+    url_for,
+)
 
 from CTFd.models import Challenges, Configs, Flags, Solves, db
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.plugins.LuaUtils import (
     ConfigPanel,
     _LuaAsset,
+    extend_page,
     merge_text,
     run_after_route,
     run_before_route,
+    table_column,
     toggle_config,
 )
 from CTFd.plugins.userchallenge.api_calls import (
@@ -17,15 +26,16 @@ from CTFd.plugins.userchallenge.api_calls import (
     files,
     flags,
     hints,
+    modules,
+    ratings,
+    solutions,
     tags,
     topics,
 )
 from CTFd.plugins.userchallenge.utils import (
     UserChallenges,
     getAllUserChallenges,
-    getCreationDate,
-    getLastChanged,
-    getUserForChallenge,
+    getChallengeInfos,
     isReadOnly,
     owned_by_user,
     showLink,
@@ -35,7 +45,7 @@ from CTFd.utils import config
 from CTFd.utils.config import get_config
 from CTFd.utils.decorators import admins_only, authed_only
 from CTFd.utils.helpers import get_errors, get_infos
-from CTFd.utils.user import get_current_user
+from CTFd.utils.user import get_current_user, is_admin
 
 userChallenge = Blueprint(
     "userchallenge", __name__, template_folder="templates", static_folder="staticAssets"
@@ -116,47 +126,35 @@ def load(app):
 
         return render_template("notificationConfig.html", configs=configs)
 
-    # add creation date and user to listing
-    @admins_only
-    def challenges_listing(res):    
-        q = request.args.get("q")
-        field = request.args.get("field")
-        filters = []
+    # add author, creation date and last change to the admin challenge list
+    def admin_challenge_columns(soup):
+        boxes = soup.select("#challenges tbody input[data-challenge-id]")
+        infos = getChallengeInfos([int(box["data-challenge-id"]) for box in boxes])
+        unknown = {"author": "", "creation": "", "lastChanged": ""}
 
-        if q:
-            # The field exists as an exposed column
-            if Challenges.__mapper__.has_property(field):
-                filters.append(getattr(Challenges, field).like("%{}%".format(q)))
+        def macro(name):
+            return get_template_attribute("snippets/adminChallengeColumns.html", name)
 
-        query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
-        challenges_pre = query.all()
-        total = query.count()
+        def cell(name):
+            def render(row):
+                box = row.select_one("input[data-challenge-id]")
+                info = infos.get(int(box["data-challenge-id"]), unknown) if box else unknown
+                return macro(name)(info)
+            return render
 
-        challenges = []
-        for n in challenges_pre:
-            author = getUserForChallenge(n.id)
-            date = getCreationDate(n.id)
-            lchange = getLastChanged(n.id)
-            setattr(n,'author',author)
-            setattr(n,'creation',date)
-            setattr(n,'lastChanged',lchange)
-            challenges.append(n)
-            
-        if res[0]:
-            return merge_text(
-                res[0],
-                render_template(
-                    "adminChallenges.html",
-                    challenges=challenges,
-                    total=total,
-                    q=q,
-                    field=field,
-                ),
-            )
+        for operation in (
+            table_column("#challenges", macro("author_header")(), cell("author_cell"), after="Module"),
+            table_column("#challenges", macro("created_header")(), cell("created_cell")),
+            table_column("#challenges", macro("changed_header")(), cell("changed_cell")),
+        ):
+            operation(soup)
 
-    run_after_route(app, "admin.challenges_listing", challenges_listing)
-    @admins_only
+    extend_page(app, "admin.challenges_listing", [admin_challenge_columns])
+    # Runs on every request to the route, so skip non-admins instead of using
+    # @admins_only (which would block the public user API for everyone else)
     def delete_user(user_id):
+        if not is_admin():
+            return None
         if request.method == "DELETE":
             UserChallenges.query.filter_by(user=user_id).delete()
 
@@ -278,6 +276,8 @@ def load(app):
     @app.route(
         "/userchallenge/api/challenges/<challenge_id>/requirements", methods=["GET"]
     )
+    @userChallenge_allowed
+    @owned_by_user
     def getReqs(challenge_id):
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         return {"success": True, "data": challenge.requirements}
@@ -286,3 +286,9 @@ def load(app):
     comments.load(app)
     # attempts
     attempts.load(app)
+    # Solutions
+    solutions.load(app)
+    # Modules
+    modules.load(app)
+    # Ratings
+    ratings.load(app)

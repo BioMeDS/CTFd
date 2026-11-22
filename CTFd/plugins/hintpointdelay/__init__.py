@@ -76,6 +76,10 @@ def load(app):
 
 
     def remove_point_test():
+        # Only unlock creation is handled here; GET (admin unlock list) etc.
+        # fall through to the normal route
+        if request.method != "POST":
+            return None
         req = request.get_json()
         user = get_current_user()
 
@@ -149,6 +153,16 @@ def load(app):
 
     #modified award unlock
     def modify_award(res):
+        if request.method != "POST":
+            return None
+        # Only adjust awards when the unlock itself succeeded
+        result = res[0]
+        status = 200
+        if isinstance(result, tuple):
+            result, status = result[0], (result[1] if len(result) > 1 else 200)
+        body = result.get_json(silent=True) if hasattr(result, "get_json") else result
+        if status != 200 or not isinstance(body, dict) or not body.get("success"):
+            return None
         req = request.get_json()
 
         user = get_current_user()
@@ -192,14 +206,26 @@ def load(app):
             db.session.commit()
             clear_standings()
 
-            return {"success": True, "data": res}
+        # Keep the original unlock response; this hook only adjusts awards
+        return None
 
 
     run_after_route(app,'api.unlocks_unlock_list',modify_award)
 
     def modify_challenge_correct(res):
-        response = res[0].get_json()
-        if (response['success'] and response['data']['status'] == 'correct'):
+        # The wrapped view may return a Response, a plain dict (e.g. from a
+        # before-hook such as fileFlags) or a (body, status) tuple
+        result = res[0]
+        if isinstance(result, tuple):
+            result = result[0]
+        if hasattr(result, "get_json"):
+            response = result.get_json(silent=True) or {}
+        elif isinstance(result, dict):
+            response = result
+        else:
+            return None
+        data = response.get('data') or {}
+        if (response.get('success') and isinstance(data, dict) and data.get('status') == 'correct'):
             if not request.is_json:
                 request_data = request.form
             else:

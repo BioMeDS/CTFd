@@ -3,13 +3,21 @@ from flask import request
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.models import ChallengeTopics, Topics, db
 from CTFd.models import ChallengeTopics as ChallengeTopicsModel
-from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import (
+    ReadOnly,
+    challenge_id_from,
+    require_challenge_owner,
+    userChallenge_allowed,
+)
 from CTFd.schemas.topics import ChallengeTopicSchema, TopicSchema
+from CTFd.utils.decorators import admins_only
 
 
 def load(app):
     @app.route('/userchallenge/api/challenges/<challenge_id>/topics', methods=['GET'])
+    @userChallenge_allowed
     def getTopics(challenge_id):
+        require_challenge_owner(challenge_id)
         response = []
 
         topics = ChallengeTopicsModel.query.filter_by(challenge_id=challenge_id).all()
@@ -30,6 +38,8 @@ def load(app):
     @ReadOnly
     def createTopic():
         req = request.get_json()
+        # Check before anything is written (a new global topic may be created below)
+        require_challenge_owner(challenge_id_from(req))
         value = req.get("value")
 
         if value:
@@ -81,12 +91,14 @@ def load(app):
             return {"success": False}, 400
 
         topic = Model.query.filter_by(id=target_id).first_or_404()
+        require_challenge_owner(topic.challenge_id)
         db.session.delete(topic)
         db.session.commit()
         db.session.close()
 
         return {"success": True}
     @app.route('/userchallenge/api/topics/<topic_id>',methods=['GET'])
+    @userChallenge_allowed
     def getTopic(topic_id):
         topic = Topics.query.filter_by(id=topic_id).first_or_404()
         response = TopicSchema().dump(topic)
@@ -95,9 +107,9 @@ def load(app):
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
+    # Deletes a global topic shared by every challenge, so only admins may do this
     @app.route('/userchallenge/api/topic/<topic_id>',methods=['DELETE'])
-    @userChallenge_allowed
-    @ReadOnly
+    @admins_only
     def deleteTopic(topic_id):
         topic = Topics.query.filter_by(id=topic_id).first_or_404()
         db.session.delete(topic)

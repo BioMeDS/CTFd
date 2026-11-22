@@ -3,6 +3,7 @@ from flask import abort, render_template, request, url_for
 from sqlalchemy.sql import and_
 
 from CTFd.cache import clear_challenges, clear_standings
+from CTFd.exceptions.challenges import ChallengeUpdateException
 from CTFd.models import Challenges, Hints, HintUnlocks, Solves, Submissions, db
 from CTFd.plugins.challenges import get_chal_class
 from CTFd.plugins.userchallenge.utils import (
@@ -10,6 +11,7 @@ from CTFd.plugins.userchallenge.utils import (
     UserChallenges,
     add_User_Link,
     getAllUserChallenges,
+    owned_by_user,
     setLastChanged,
     userChallenge_allowed,
 )
@@ -146,6 +148,7 @@ def load(app):
     ## singular challenge
     @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['PATCH'])
     @userChallenge_allowed
+    @owned_by_user
     @ReadOnly
     def idchallpatch(challenge_id):
         data = request.get_json()
@@ -158,7 +161,10 @@ def load(app):
 
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         challenge_class = get_chal_class(challenge.type)
-        challenge = challenge_class.update(challenge, request)
+        try:
+            challenge = challenge_class.update(challenge, request)
+        except ChallengeUpdateException as e:
+            return {"success": False, "errors": {"": [str(e)]}}, 500
         response = challenge_class.read(challenge)
 
         setLastChanged(challenge_id)
@@ -168,15 +174,13 @@ def load(app):
 
         return {"success": True, "data": response}
     
-    @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['GET']) 
+    @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['GET'])
+    @userChallenge_allowed
+    @owned_by_user
     def idchallget(challenge_id):
-        if is_admin():
-            chal = Challenges.query.filter(Challenges.id == challenge_id).first_or_404()
-        else:
-            chal = Challenges.query.filter(
-                Challenges.id == challenge_id,
-                and_(Challenges.state != "hidden", Challenges.state != "locked"),
-            ).first_or_404()
+        # Access is restricted to the creator (or an admin) by @owned_by_user, so
+        # hidden challenges and unmet prerequisites must not block them here
+        chal = Challenges.query.filter(Challenges.id == challenge_id).first_or_404()
 
         try:
             chal_class = get_chal_class(chal.type)
@@ -185,50 +189,6 @@ def load(app):
                 500,
                 f"The underlying challenge type ({chal.type}) is not installed. This challenge can not be loaded.",
             )
-
-        if chal.requirements:
-            requirements = chal.requirements.get("prerequisites", [])
-            anonymize = chal.requirements.get("anonymize")
-            # Gather all challenge IDs so that we can determine invalid challenge prereqs
-            all_challenge_ids = {
-                c.id for c in Challenges.query.with_entities(Challenges.id).all()
-            }
-            if challenges_visible():
-                user = get_current_user()
-                if user:
-                    solve_ids = (
-                        Solves.query.with_entities(Solves.challenge_id)
-                        .filter_by(account_id=user.account_id)
-                        .order_by(Solves.challenge_id.asc())
-                        .all()
-                    )
-                else:
-                    # We need to handle the case where a user is viewing challenges anonymously
-                    solve_ids = []
-                solve_ids = {value for value, in solve_ids}
-                prereqs = set(requirements).intersection(all_challenge_ids)
-                if solve_ids >= prereqs or is_admin():
-                    pass
-                else:
-                    if anonymize:
-                        return {
-                            "success": True,
-                            "data": {
-                                "id": chal.id,
-                                "type": "hidden",
-                                "name": "???",
-                                "value": 0,
-                                "solves": None,
-                                "solved_by_me": False,
-                                "category": "???",
-                                "tags": [],
-                                "template": "",
-                                "script": "",
-                            },
-                        }
-                    abort(403)
-            else:
-                abort(403)
 
         tags = [
             tag["value"] for tag in TagSchema("user", many=True).dump(chal.tags).data
@@ -341,6 +301,7 @@ def load(app):
 
     @app.route('/userchallenge/api/challenges/<challenge_id>',methods=['DELETE'])
     @userChallenge_allowed
+    @owned_by_user
     @ReadOnly
     def delete_challenge(challenge_id):
         delete_userchallenge(challenge_id)
@@ -354,6 +315,7 @@ def load(app):
 
     @app.route('/userchallenge/challenges/preview/<challenge_id>')
     @userChallenge_allowed
+    @owned_by_user
     def render_preview(challenge_id):
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         chal_class = get_chal_class(challenge.type)

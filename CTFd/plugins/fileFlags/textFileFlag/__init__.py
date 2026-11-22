@@ -1,11 +1,10 @@
 import re
 from urllib.parse import urlparse
 
-from flask import request
+from flask import g, request
 from CTFd.models import Files, Flags, db
 from CTFd.plugins import register_plugin_assets_directory
 from CTFd.plugins.flags import FLAG_CLASSES, BaseFlag, FlagException
-from CTFd.plugins.LuaUtils import run_before_route
 from CTFd.utils.logging import log
 from CTFd.utils.uploads import get_uploader
 
@@ -66,10 +65,16 @@ def load(app):
     FLAG_CLASSES['textFile'] = CTFdTFileFlag
     register_plugin_assets_directory(app, base_path="/plugins/fileFlags/textFileFlag/assets/")
     
-    def delete_text_file_flag(flag_id):
+    prefix = "/files/"
+
+    def _flag_file_refs(flag_id):
+        """
+        Returns (location, content) of the uploaded file a textFile flag points to,
+        or None if the flag has no deletable file. Nothing is deleted here.
+        """
         flag = Flags.query.filter_by(id=flag_id, type="textFile").first()
         if flag is None or not flag.content:
-            return
+            return None
 
         content = (
             flag.content.decode("utf-8")
@@ -77,39 +82,51 @@ def load(app):
             else flag.content
         )
         path = urlparse(content).path
-        prefix = "/files/"
         if not path.startswith(prefix):
-            return
+            return None
 
         location = path[len(prefix) :]
-        file_record = Files.query.filter_by(location=location).first()
-        if file_record is None:
-            return
+        if Files.query.filter_by(location=location).first() is None:
+            return None
+        return location, content
 
+    def _delete_unshared_file(location, content):
+        # The flag itself is already gone at this point, so any remaining flag
+        # referencing the file means it is still in use
         shared = Flags.query.filter(
-            Flags.id != flag.id,
             Flags.content.in_((location, prefix + location, content)),
         ).first()
         if shared is not None:
+            return
+
+        file_record = Files.query.filter_by(location=location).first()
+        if file_record is None:
             return
 
         get_uploader().delete(file_record.location)
         db.session.delete(file_record)
         db.session.commit()
 
-    if "flagIDdelete" in app.view_functions:
-        run_before_route(
-            app,
-            "flagIDdelete",
-            lambda *args, **kwargs: delete_text_file_flag(kwargs.get("flag_id")),
-        )
-    else:
-        @app.before_request
-        def delete_text_file_flag_before_request():
-            if request.endpoint != "flagIDdelete":
-                return
+    def _delete_succeeded(response):
+        if response.status_code != 200:
+            return False
+        body = response.get_json(silent=True) or {}
+        # ReadOnly answers 200 {"success": True, "errors": ...} without deleting
+        return bool(body.get("success")) and not body.get("errors")
 
-            match = re.fullmatch(r"/userchallenge/api/flags/(\d+)", request.path)
-            if match:
-                delete_text_file_flag(int(match.group(1)))
-    
+    # Remember the file before the flag delete runs, and only remove it once the
+    # delete actually succeeded (so denied / read-only deletes keep the file).
+    @app.before_request
+    def remember_text_file_flag_file():
+        if request.endpoint != "flagIDdelete" or request.method != "DELETE":
+            return
+        flag_id = (request.view_args or {}).get("flag_id")
+        if flag_id is not None:
+            g.text_file_flag_refs = _flag_file_refs(flag_id)
+
+    @app.after_request
+    def delete_text_file_flag_file(response):
+        refs = g.pop("text_file_flag_refs", None)
+        if refs and _delete_succeeded(response):
+            _delete_unshared_file(*refs)
+        return response

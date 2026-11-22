@@ -1,14 +1,13 @@
 
 
 
-from flask import request
+from flask import abort, request
 
 from CTFd.api.v1.comments import get_comment_model
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.constants import RawEnum
-from CTFd.constants.sessions import Session
 from CTFd.models import Comments, db
-from CTFd.plugins.userchallenge.utils import userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import require_challenge_owner, userChallenge_allowed
 from CTFd.schemas.comments import CommentSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -30,6 +29,11 @@ def load(app):
         location="query",
     )
     def getComs(query_args):
+        # Non-admins may only read the comments on their own challenges
+        if not is_admin():
+            if any(query_args.get(k) for k in ("user_id", "team_id", "page_id")):
+                abort(403)
+            require_challenge_owner(query_args.get("challenge_id"))
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
         CommentModel = get_comment_model(data=query_args)
@@ -75,9 +79,14 @@ def load(app):
         location="query",
     )
     def postCom(query_args):
-        req = request.get_json()
+        req = request.get_json() or {}
+        # Non-admins may only comment on their own challenges
+        if not is_admin():
+            if any(req.get(k) for k in ("user_id", "team_id", "page_id")):
+                abort(403)
+            require_challenge_owner(req.get("challenge_id"))
         # Always force author IDs to be the actual user
-        req["author_id"] = Session["id"]
+        req["author_id"] = get_current_user().id
         CommentModel = get_comment_model(data=req)
 
         m = CommentModel(**req)

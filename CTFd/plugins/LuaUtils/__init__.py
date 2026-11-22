@@ -142,6 +142,41 @@ def run_after_route(app,key,function):
     delete_user_decorator = run_as_decorator(function,True)
     app.view_functions[key] = delete_user_decorator(app.view_functions[key])
 
+
+try:
+    from CTFd.plugins.LuaUtils.html_patch import (  # noqa: F401
+        insert,
+        patch_html,
+        patch_response,
+        table_column,
+    )
+except ImportError as _html_patch_error:  # beautifulsoup4 not installed
+    def _missing_bs4(*args, **kwargs):
+        raise ImportError(
+            "LuaUtils.extend_page needs beautifulsoup4 "
+            "(see CTFd/plugins/LuaUtils/requirements.txt, rebuild the image)"
+        ) from _html_patch_error
+
+    insert = table_column = patch_html = patch_response = _missing_bs4
+
+
+def extend_page(app, endpoint, operations):
+    """
+    Modularly extend the HTML page rendered by `endpoint` by patching the
+    original page instead of merging a full copy of it.
+
+    operations -- list of operations (see LuaUtils.html_patch: insert,
+                  table_column), or a callable(**view_kwargs) returning that
+                  list, for operations that need per-request data.
+    """
+    def extend(res, *args, **kwargs):
+        ops = operations(**kwargs) if callable(operations) else operations
+        if not ops:
+            return None
+        return patch_response(res[0], ops)
+
+    run_after_route(app, endpoint, extend)
+
 # https://stackoverflow.com/a/61107079
 def merge_text(text1:str, text2:str) -> str:
     """

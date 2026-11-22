@@ -11,7 +11,9 @@ import ChallengeFilesList from "./components/files/ChallengeFilesListRead.vue";
 import FlagList from "./components/flags/FlagListRead.vue";
 import HintsList from "./components/hints/HintsListRead.vue";
 import NextChallenge from "./components/next/NextChallengeRead.vue";
+import RatingsViewer from "./components/ratings/RatingsViewer.vue";
 import Requirements from "./components/requirements/RequirementsRead.vue";
+import SolutionEditor from "./components/solution/SolutionEditorRead.vue";
 import TagsList from "./components/tags/TagsListRead.vue";
 import TopicsList from "./components/topics/TopicsListRead.vue";
 import "./main";
@@ -139,7 +141,7 @@ function handleChallengeOptions(event) {
 
 $(() => {
   $(".preview-challenge").click(function (_e) {
-    let url = `/userchallenge/challenges/preview/${window.CHALLENGE_ID}`;
+    let url = `${CTFd.config.urlRoot}/userchallenge/challenges/preview/${window.CHALLENGE_ID}`;
     $("#challenge-window").html(
       `<iframe src="${url}" height="100%" width="100%" frameBorder=0></iframe>`,
     );
@@ -148,6 +150,10 @@ $(() => {
 
   $(".comments-challenge").click(function (_event) {
     $("#challenge-comments-window").modal();
+  });
+
+  $(".ratings-challenge").click(function (_event) {
+    $("#challenge-ratings-window").modal();
   });
 
   $(".delete-challenge").click(function (_e) {
@@ -387,7 +393,27 @@ $(() => {
     }).$mount(vueContainer);
   }
 
-  $.get("/userchallenge/api/challenges/types", function (res) {
+  // Load read-only Solution component
+  if (document.querySelector("#challenge-solution")) {
+    const solutionEditor = Vue.extend(SolutionEditor);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-solution").appendChild(vueContainer);
+    new solutionEditor({
+      propsData: { challenge_id: window.CHALLENGE_ID },
+    }).$mount(vueContainer);
+  }
+
+  // Load RatingsViewer component
+  if (document.querySelector("#ratings-box")) {
+    const ratingsViewer = Vue.extend(RatingsViewer);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#ratings-box").appendChild(vueContainer);
+    new ratingsViewer({
+      propsData: { challengeId: window.CHALLENGE_ID },
+    }).$mount(vueContainer);
+  }
+
+  $.get(CTFd.config.urlRoot + "/userchallenge/api/challenges/types", function (res) {
     const data = res.data;
     loadChalTemplate(data["standard"]);
 

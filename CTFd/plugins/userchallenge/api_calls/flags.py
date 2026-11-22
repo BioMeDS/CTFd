@@ -5,7 +5,13 @@ from flask import render_template, request
 from CTFd.models import Flags, db
 from CTFd.plugins.challenges import CHALLENGE_CLASSES
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
-from CTFd.plugins.userchallenge.utils import ReadOnly, userChallenge_allowed
+from CTFd.plugins.userchallenge.utils import (
+    ReadOnly,
+    challenge_id_from,
+    require_body_challenge_owner,
+    require_challenge_owner,
+    userChallenge_allowed,
+)
 from CTFd.schemas.flags import FlagSchema
 
 
@@ -30,7 +36,9 @@ def load(app):
         return {"success": True, "data": response}
     ## flag saving
     @app.route('/userchallenge/api/challenges/<challenge_id>/flags',methods=['GET'])
+    @userChallenge_allowed
     def flagget(challenge_id):
+        require_challenge_owner(challenge_id)
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
         response = schema.dump(flags)
@@ -45,6 +53,7 @@ def load(app):
     @ReadOnly
     def flagpost():
         req = request.get_json()
+        require_challenge_owner(challenge_id_from(req))
         schema = FlagSchema()
         response = schema.load(req, session=db.session)
 
@@ -70,8 +79,10 @@ def load(app):
             }
         return {"success": True, "data": response}
     @app.route('/userchallenge/api/flags/<flag_id>',methods=['GET'])
+    @userChallenge_allowed
     def flagIDget(flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
+        require_challenge_owner(flag.challenge_id)
         schema = FlagSchema()
         response = schema.dump(flag)
 
@@ -86,8 +97,10 @@ def load(app):
     @ReadOnly
     def flagIDpatch(flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
+        require_challenge_owner(flag.challenge_id)
         schema = FlagSchema()
         req = request.get_json()
+        require_body_challenge_owner(req)
 
         response = schema.load(req, session=db.session, instance=flag, partial=True)
 
@@ -105,6 +118,7 @@ def load(app):
     @ReadOnly
     def flagIDdelete(flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
+        require_challenge_owner(flag.challenge_id)
 
         db.session.delete(flag)
         db.session.commit()
